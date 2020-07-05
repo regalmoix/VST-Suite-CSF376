@@ -1,0 +1,97 @@
+/*
+  ==============================================================================
+
+    This file was auto-generated!
+
+    It contains the basic startup code for a JUCE application.
+
+  ==============================================================================
+*/
+
+#include <JuceHeader.h>
+#include "MainComponent.h"
+
+//==============================================================================
+class SineOscApplication  : public JUCEApplication
+{
+public:
+    //==============================================================================
+	SineOscApplication() = default;
+
+    const String getApplicationName() override       { return "SineSynthTutorial"; }
+    const String getApplicationVersion() override    { return "1.0.0"; }
+
+    //==============================================================================
+    void initialise (const String&) override
+    {
+        // This method is where you should put your application's initialisation code..
+
+        mainWindow.reset (new MainWindow ("SineSynthTutorial",new MainContentComponent, *this));
+    }
+
+    void shutdown() override
+    {
+        // Add your application's shutdown code here..
+
+        mainWindow = nullptr; // (deletes our window)
+    }
+
+    //==============================================================================
+    
+
+    //==============================================================================
+    /*
+        This class implements the desktop window that contains an instance of
+        our MainComponent class.
+    */
+private:
+    class MainWindow    : public DocumentWindow
+    {
+    public:
+		MainWindow(String name, juce::Component* c, JUCEApplication& a)
+			: DocumentWindow(name, Desktop::getInstance().getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId),
+				DocumentWindow::allButtons),
+			app(a)
+        {
+            setUsingNativeTitleBar (true);
+            setContentOwned (c, true);
+
+           #if JUCE_IOS || JUCE_ANDROID
+            setFullScreen (true);
+           #else
+            setResizable (true, false);
+			setResizeLimits(300, 250, 10000, 10000);
+            centreWithSize (getWidth(), getHeight());
+           #endif
+
+            setVisible (true);
+        }
+
+        void closeButtonPressed() override
+        {
+            // This is called when the user tries to close this window. Here, we'll just
+            // ask the app to quit when this happens, but you can change this to do
+            // whatever you need.
+            app.systemRequestedQuit();
+        }
+
+	private:
+		JUCEApplication& app;
+        /* Note: Be careful if you override any DocumentWindow methods - the base
+           class uses a lot of them, so by overriding you might break its functionality.
+           It's best to do all your work in your content component instead, but if
+           you really have to override any DocumentWindow methods, make sure your
+           subclass also calls the superclass's method.
+        */
+
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
+    };
+
+
+    std::unique_ptr<MainWindow> mainWindow;
+};
+
+//==============================================================================
+// This macro generates the main() routine that launches the app.
+START_JUCE_APPLICATION (SineOscApplication)
