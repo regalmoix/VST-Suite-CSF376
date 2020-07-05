@@ -17,34 +17,43 @@
 
   ==============================================================================
 */
+#include <JuceHeader.h>
 
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent : public juce::AudioAppComponent
+class MainComponent  : public juce::AudioAppComponent
 {
 public:
     //==============================================================================
     MainComponent()
     {
-        // Make sure you set the size of the component after
-        // you add any child components.
+        targetLevel = 0.125f;
+
         levelSlider.setRange(0.0, 0.25);
+        levelSlider.setValue(targetLevel, juce::dontSendNotification);
         levelSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 100, 20);
+        levelSlider.onValueChange = [this]
+        {
+            targetLevel = (float)levelSlider.getValue();
+            samplesToTarget = rampLengthSamples;
+        };
+
         levelLabel.setText("Noise Level", juce::dontSendNotification);
 
-        addAndMakeVisible(levelSlider);
-        addAndMakeVisible(levelLabel);
-
-        setSize(600, 100);
+        addAndMakeVisible(&levelSlider);
+        addAndMakeVisible(&levelLabel);
+        // Make sure you set the size of the component after
+        // you add any child components.
+        setSize (800, 100);
 
         // Some platforms require permissions to open input channels so request that here
-
+        
             // Specify the number of input and output channels that we want to open
-        setAudioChannels(2, 2);
-
+            setAudioChannels (0, 2);
+        
     }
 
     ~MainComponent() override
@@ -54,7 +63,7 @@ public:
     }
 
     //==============================================================================
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override
+    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override
     {
         // This function will be called when the audio device is started, or when
         // its settings (i.e. sample rate, block size, etc) are changed.
@@ -63,9 +72,10 @@ public:
         // but be careful - it will be called on the audio thread, not the GUI thread.
 
         // For more details, see the help for AudioProcessor::prepareToPlay()
+        resetParameters();
     }
 
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override
     {
         // Your audio-processing code goes here!
 
@@ -73,37 +83,38 @@ public:
 
         // Right now we are not producing any data, in which case we need to clear the buffer
         // (to prevent the output of random noise)
-        auto* device = deviceManager.getCurrentAudioDevice();
-        auto activeInputChannels = device->getActiveInputChannels();
-        auto activeOutputChannels = device->getActiveOutputChannels();
-        auto maxInputChannels = activeInputChannels.getHighestBit() + 1;
-        auto maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
+        auto numSamplesRemaining = bufferToFill.numSamples;
+        auto offset = 0;
 
-        auto level = (float)levelSlider.getValue();
-
-        for (auto channel = 0; channel < maxOutputChannels; ++channel)
+        if (samplesToTarget > 0)
         {
-            if ((!activeOutputChannels[channel]) || maxInputChannels == 0)
+            auto levelIncrement = (targetLevel - currentLevel) / samplesToTarget;
+            auto numSamplesThisTime = juce::jmin(numSamplesRemaining, samplesToTarget);
+
+            for (auto sample = 0; sample < numSamplesThisTime; ++sample)
             {
-                bufferToFill.buffer->clear(channel, bufferToFill.startSample, bufferToFill.numSamples);
+                for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
+                    bufferToFill.buffer->setSample(channel, sample, random.nextFloat() * currentLevel);
+
+                currentLevel += levelIncrement;
+                --samplesToTarget;
             }
-            else
+
+            offset = numSamplesThisTime;
+            numSamplesRemaining -= numSamplesThisTime;
+
+            if (samplesToTarget == 0)
+                currentLevel = targetLevel;
+        }
+
+        if (numSamplesRemaining > 0)
+        {
+            for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
             {
-                auto actualInputChannel = channel % maxInputChannels; // [1]
+                auto* buffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample + offset);
 
-                if (!activeInputChannels[channel]) // [2]
-                {
-                    bufferToFill.buffer->clear(channel, bufferToFill.startSample, bufferToFill.numSamples);
-                }
-                else // [3]
-                {
-                    auto* inBuffer = bufferToFill.buffer->getReadPointer(actualInputChannel,
-                        bufferToFill.startSample);
-                    auto* outBuffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
-
-                    for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-                        outBuffer[sample] = inBuffer[sample] * random.nextFloat() * level;
-                }
+                for (auto sample = 0; sample < numSamplesRemaining; ++sample)
+                    *buffer++ = random.nextFloat() * currentLevel;
             }
         }
     }
@@ -117,7 +128,10 @@ public:
     }
 
     //==============================================================================
-
+    void resetParameters() {
+        currentLevel = targetLevel;
+        samplesToTarget = 0;
+    }
 
     void resized() override
     {
@@ -135,6 +149,11 @@ private:
     juce::Random random;
     juce::Slider levelSlider;
     juce::Label levelLabel;
+    float currentLevel;
+    float targetLevel;
+    int samplesToTarget;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
+    static constexpr auto rampLengthSamples = 128;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
