@@ -62,7 +62,7 @@
     }
   };
 #elif defined VST3_API
-#include "public.sdk/source/main/pluginfactoryvst3.h"
+#include "public.sdk/source/main/pluginfactory.h"
 
 unsigned int GUID_DATA1 = 0xF2AEE70D;
 unsigned int GUID_DATA2 = 0x00DE4F4E;
