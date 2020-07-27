@@ -7,7 +7,7 @@ const int kNumPrograms = 5;
 
 enum EParams
 {
-  kThreshold = 0,
+  kDistortAmt = 0,
   kNumParams
 };
 
@@ -16,9 +16,9 @@ enum ELayout
   kWidth = GUI_WIDTH,
   kHeight = GUI_HEIGHT,
 
-  kThresholdX = 100,
-  kThresholdY = 100,
-  kKnobFrames = 60
+  kDistortAmtX = 79,
+  kDistortAmtY = 62,
+  kKnobFrames = 128
 };
 
 DigitalDistortion::DigitalDistortion(IPlugInstanceInfo instanceInfo)
@@ -27,15 +27,15 @@ DigitalDistortion::DigitalDistortion(IPlugInstanceInfo instanceInfo)
   TRACE;
 
   //arguments are: name, defaultVal, minVal, maxVal, step, label
-  GetParam(kThreshold)->InitDouble("Threshold", 100.0, 0.01, 100.0, 0.01, "%");
-  GetParam(kThreshold)->SetShape(2.);
+  GetParam(kDistortAmt)->InitDouble("DistortAmt", 0.0, 0.0, 99.99, 0.01, "%");
+  GetParam(kDistortAmt)->SetShape(2.);
 
   IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
-  pGraphics->AttachPanelBackground(&COLOR_RED);
-
+  //pGraphics->AttachPanelBackground(&COLOR_RED);
+  pGraphics->AttachBackground(BACKGROUND_ID, BACKGROUND_FN);
   IBitmap knob = pGraphics->LoadIBitmap(KNOB_ID, KNOB_FN, kKnobFrames);
 
-  pGraphics->AttachControl(new IKnobMultiControl(this, kThresholdX, kThresholdY, kThreshold, &knob));
+  pGraphics->AttachControl(new IKnobMultiControl(this, kDistortAmtX, kDistortAmtY, kDistortAmt, &knob));
 
   AttachGraphics(pGraphics);
 
@@ -79,8 +79,8 @@ void DigitalDistortion::OnParamChange(int paramIdx)
 
   switch (paramIdx)
   {
-    case kThreshold:
-      mThreshold = GetParam(kThreshold)->Value() / 100.;
+    case kDistortAmt:
+      mThreshold =1-( GetParam(kDistortAmt)->Value() / 100.);
       break;
 
     default:
@@ -89,9 +89,9 @@ void DigitalDistortion::OnParamChange(int paramIdx)
 }
 
 void DigitalDistortion::createPresets() {
-    MakePreset("Clean", 100.0);
-    MakePreset("SlightlyDistorted", 80.0);
+    MakePreset("Clean", 0.01);
+    MakePreset("SlightlyDistorted", 20.0);
     MakePreset("woooo", 40.0);
-    MakePreset("waaaa", 20.0);
-    MakePreset("buzzz!!!", 0.0);
+    MakePreset("waaaa", 80.0);
+    MakePreset("buzzz!!!", 99.99);
 }
