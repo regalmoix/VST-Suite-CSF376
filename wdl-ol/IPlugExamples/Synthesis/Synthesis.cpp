@@ -7,7 +7,6 @@ const int kNumPrograms = 5;
 
 enum EParams
 {
-  kFrequency = 0,
   kNumParams
 };
 
@@ -15,10 +14,6 @@ enum ELayout
 {
   kWidth = GUI_WIDTH,
   kHeight = GUI_HEIGHT,
-
-  kDistortAmtX = 79,
-  kDistortAmtY = 62,
-  kKnobFrames = 128
 };
 
 Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
@@ -27,15 +22,10 @@ Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
   TRACE;
 
   //arguments are: name, defaultVal, minVal, maxVal, step, label
-  GetParam(kFrequency)->InitDouble("Frequency", 440.0, 50.0, 20000.0, 0.01, "Hz");
-  GetParam(kFrequency)->SetShape(2.0);
 
   IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
   //pGraphics->AttachPanelBackground(&COLOR_RED);
   pGraphics->AttachBackground(BACKGROUND_ID, BACKGROUND_FN);
-  IBitmap knob = pGraphics->LoadIBitmap(KNOB_ID, KNOB_FN, kKnobFrames);
-
-  pGraphics->AttachControl(new IKnobMultiControl(this, kDistortAmtX, kDistortAmtY, kFrequency, &knob));
 
   AttachGraphics(pGraphics);
 
@@ -51,10 +41,19 @@ void Synthesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nF
 
     double* leftOutput = outputs[0];
     double* rightOutput = outputs[1];
-    mOscillator.generate(leftOutput, nFrames);
-    for (int s = 0; s < nFrames; ++s) {
-        rightOutput[s] = leftOutput[s];
+    for (int i = 0; i < nFrames; ++i) {
+        mMidiReceiver.advance();
+        int velocity = mMidiReceiver.getLastVelocity();
+        if (velocity > 0) {
+            mOscillator.setFrequency(mMidiReceiver.getLastFrequency());
+            mOscillator.setMuted(false);
+        }
+        else {
+            mOscillator.setMuted(true);
+        }
+        leftOutput[i] = rightOutput[i] = mOscillator.nextSample()* velocity / 127.0;
     }
+    mMidiReceiver.Flush(nFrames);
 }
 
 void Synthesis::Reset()
@@ -68,18 +67,13 @@ void Synthesis::OnParamChange(int paramIdx)
 {
   IMutexLock lock(this);
 
-  switch (paramIdx)
-  {
-    case kFrequency:
-      mOscillator.setFrequency( GetParam(kFrequency)->Value());
-      break;
-
-    default:
-      break;
-  }
 }
 
 void Synthesis::CreatePresets() {
-    MakePreset("Clean", 440.0);
+    MakeDefaultPreset((char*)"-", kNumPrograms);
     
+}
+
+void Synthesis::ProcessMidiMsg(IMidiMsg* pMsg) {
+    mMidiReceiver.onMessageReceived(pMsg);
 }
