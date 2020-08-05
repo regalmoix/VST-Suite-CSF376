@@ -5,6 +5,8 @@
 #pragma clang diagnostic pop
 
 #include "IMidiQueue.h"
+#include "GallantSignal.h"
+using Gallant::Signal2;
 
 class MIDIReceiver {
 private:
@@ -30,6 +32,9 @@ public:
 			mKeyStatus[i] = false;
 		}
 	};
+
+	Signal2< int, int > noteOn;
+	Signal2< int, int > noteOff;
 
 	inline bool getKeyStatus(int keyIndex) const { return mKeyStatus[keyIndex]; }
 	inline int getNumKeys() const { return mNumKeys; }

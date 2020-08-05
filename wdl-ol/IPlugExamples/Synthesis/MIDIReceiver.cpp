@@ -23,6 +23,7 @@ void MIDIReceiver::advance() {
 				mLastNoteNumber = noteNumber;
 				mLastFrequency = noteNumberToFrequency(mLastNoteNumber);
 				mLastVelocity = velocity;
+				noteOn(noteNumber, velocity);
 			}
 		}
 		else {
@@ -32,8 +33,7 @@ void MIDIReceiver::advance() {
 			}
 			if (noteNumber == mLastNoteNumber) {
 				mLastNoteNumber = -1;
-				mLastFrequency = -1;
-				mLastVelocity = 0;
+				noteOff(noteNumber, mLastVelocity);
 			}
 		}
 		mMidiQueue.Remove();
