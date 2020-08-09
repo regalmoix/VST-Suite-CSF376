@@ -1,5 +1,7 @@
 #pragma once
 #include <cmath>
+#include "GallantSignal.h"
+using Gallant::Signal0;
 
 class EnvelopeGenerator {
 public:
@@ -14,9 +16,11 @@ public:
 	void enterStage(EnvelopeStage newStage);
 	double nextSample();
 	void setSampleRate(double newSampleRate);
+	void setStageValue(EnvelopeStage stage, double value);
 	inline EnvelopeStage getCurrentStage() const { return currentStage; }
 	const double minimumLevel;
-
+	Signal0<> beganEnvelopeCycle;
+	Signal0<> finishedEnvelopeCycle;
 	EnvelopeGenerator() :
 		minimumLevel(0.0001),
 		currentStage(ENVELOPE_STAGE_OFF),

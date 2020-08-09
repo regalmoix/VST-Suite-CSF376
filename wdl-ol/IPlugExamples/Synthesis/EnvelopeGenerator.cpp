@@ -19,6 +19,14 @@ void EnvelopeGenerator::calculateMultiplier(double startLevel, double endLevel, 
 }
 
 void EnvelopeGenerator::enterStage(EnvelopeStage newStage) {
+	if (currentStage == newStage)
+		return;
+	if (currentStage == ENVELOPE_STAGE_OFF) {
+		beganEnvelopeCycle();
+	}
+	if (newStage == ENVELOPE_STAGE_OFF) {
+		finishedEnvelopeCycle();
+	}
 	currentStage = newStage;
 	currentSampleIndex = 0;
 	if (currentStage == ENVELOPE_STAGE_OFF || currentStage == ENVELOPE_STAGE_SUSTAIN) {
@@ -54,4 +62,39 @@ void EnvelopeGenerator::enterStage(EnvelopeStage newStage) {
 
 void EnvelopeGenerator::setSampleRate(double newSampleRate) {
 	sampleRate = newSampleRate;
+}
+
+void EnvelopeGenerator::setStageValue(EnvelopeStage stage, double value) {
+	stageValue[stage] = value;
+	if (stage == currentStage) {
+		if (currentStage == ENVELOPE_STAGE_ATTACK || currentStage == ENVELOPE_STAGE_DECAY || currentStage == ENVELOPE_STAGE_RELEASE) {
+			double nextLevelValue;
+			switch (currentStage)
+			{
+			case EnvelopeGenerator::ENVELOPE_STAGE_ATTACK:
+				nextLevelValue = 1.0;
+				break;
+			case EnvelopeGenerator::ENVELOPE_STAGE_DECAY:
+				nextLevelValue = fmax(stageValue[ENVELOPE_STAGE_SUSTAIN], minimumLevel);
+				break;
+			case EnvelopeGenerator::ENVELOPE_STAGE_RELEASE:
+				nextLevelValue = minimumLevel;
+				break;
+			default:
+				break;
+			}
+			double currentStageProcess = (currentSampleIndex + 0.0) / nextStageSampleIndex;
+			double remainingStageProcess = 1.0 - currentStageProcess;
+			unsigned long long samplesUntilNextStage = remainingStageProcess * value * sampleRate;
+			nextStageSampleIndex = currentSampleIndex + samplesUntilNextStage;
+			calculateMultiplier(currentLevel, nextLevelValue, samplesUntilNextStage);
+		}
+		else if (currentStage == ENVELOPE_STAGE_SUSTAIN) {
+			currentLevel = value;
+		}
+	}
+	if (currentStage == ENVELOPE_STAGE_DECAY && stage == ENVELOPE_STAGE_SUSTAIN) {
+		unsigned long long samplesUntilNextStage = nextStageSampleIndex - currentSampleIndex;
+		calculateMultiplier(currentLevel, fmax(stageValue[ENVELOPE_STAGE_SUSTAIN], minimumLevel),samplesUntilNextStage);
+	}
 }

@@ -8,7 +8,12 @@ const int kNumPrograms = 5;
 
 enum EParams
 {
-  kNumParams
+    mWaveform=0,
+    mAttack,
+    mDecay,
+    mSustain,
+    mRelease,
+    kNumParams
 };
 
 enum ELayout
@@ -16,7 +21,7 @@ enum ELayout
   kWidth = GUI_WIDTH,
   kHeight = GUI_HEIGHT,
   kKeybX=1,
-  kKeybY=0
+  kKeybY=230
 };
 
 Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
@@ -38,6 +43,29 @@ Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
   mVirtualKeyboard = new IKeyboardControl(this, kKeybX, kKeybY, virtualKeyboardMinimumNoteNumber, 5, &whiteKeyImage, &blackKeyImage, keyCoordinates);
   pGraphics->AttachControl(mVirtualKeyboard);
 
+  GetParam(mWaveform)->InitEnum("Waveform", OSCILLATOR_MODE_SINE, kNumOscillatorModes);
+  GetParam(mWaveform)->SetDisplayText(0, "Sine");
+  IBitmap waveformBitmap = pGraphics->LoadIBitmap(WAVEFORM_ID, WAVEFORM_FN, 4);
+  pGraphics->AttachControl(new ISwitchControl(this, 24, 53, mWaveform, &waveformBitmap));
+
+  IBitmap knobBitmap = pGraphics->LoadIBitmap(KNOB_ID, KNOB_FN, 64); //adsr knobs
+
+  GetParam(mAttack)->InitDouble("Attack", 0.01, 0.01, 10.0, 0.001);
+  GetParam(mAttack)->SetShape(3);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 95, 34, mAttack, &knobBitmap));
+  
+  GetParam(mDecay)->InitDouble("Decay", 0.5, 0.01, 15.0, 0.001);
+  GetParam(mDecay)->SetShape(3);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 177, 34, mDecay, &knobBitmap));
+
+  GetParam(mSustain)->InitDouble("Sustain", 0.1, 0.001, 1.0, 0.001);
+  GetParam(mSustain)->SetShape(3);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 259, 34, mSustain, &knobBitmap));
+
+  GetParam(mRelease)->InitDouble("Release", 1.0, 0.001, 15.0, 0.001);
+  GetParam(mRelease)->SetShape(3);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 341, 34, mRelease, &knobBitmap));
+
   AttachGraphics(pGraphics);
 
   //MakePreset("preset 1", ... );
@@ -45,6 +73,8 @@ Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
 
   mMidiReceiver.noteOn.Connect(this, &Synthesis::onNoteOn);
   mMidiReceiver.noteOff.Connect(this, &Synthesis::onNoteOff);
+  mEnvelopeGenerator.beganEnvelopeCycle.Connect(this, &Synthesis::onBeganEnvelopeCycle);
+  mEnvelopeGenerator.finishedEnvelopeCycle.Connect(this, &Synthesis::onFinishedEnvelopecycle);
 }
 
 Synthesis::~Synthesis() {}
@@ -59,13 +89,9 @@ void Synthesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nF
     for (int i = 0; i < nFrames; ++i) {
         mMidiReceiver.advance();
         int velocity = mMidiReceiver.getLastVelocity();
-        if (velocity > 0) {
-            mOscillator.setFrequency(mMidiReceiver.getLastFrequency());
-            mOscillator.setMuted(false);
-        }
-        else {
-            mOscillator.setMuted(true);
-        }
+        
+        mOscillator.setFrequency(mMidiReceiver.getLastFrequency());
+
         //leftOutput[i] = rightOutput[i] = mOscillator.nextSample()* velocity / 127.0;
         
         leftOutput[i] = rightOutput[i] = mOscillator.nextSample() * mEnvelopeGenerator.nextSample() * velocity / 127.0;
@@ -84,7 +110,16 @@ void Synthesis::Reset()
 void Synthesis::OnParamChange(int paramIdx)
 {
   IMutexLock lock(this);
-
+  switch (paramIdx) {
+  case mWaveform:
+      mOscillator.setMode(static_cast<OscillatorMode>(GetParam(mWaveform)->Int()));
+      break;
+  case mAttack:
+  case mDecay:
+  case mSustain:
+  case mRelease:
+      mEnvelopeGenerator.setStageValue(static_cast<EnvelopeGenerator::EnvelopeStage>(paramIdx), GetParam(paramIdx)->Value());
+  }
 }
 
 void Synthesis::CreatePresets() {
