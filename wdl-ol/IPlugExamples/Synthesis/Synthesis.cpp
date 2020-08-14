@@ -13,6 +13,14 @@ enum EParams
     mDecay,
     mSustain,
     mRelease,
+    mFilterMode,
+    mFilterCutoff,
+    mFilterResonance,
+    mFilterAttack,
+    mFilterDecay,
+    mFilterSustain,
+    mFilterRelease,
+    mFilterEnvelopeAmount,
     kNumParams
 };
 
@@ -26,7 +34,8 @@ enum ELayout
 
 Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
   :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), 
-    lastVirtualKeyboardNoteNumber(virtualKeyboardMinimumNoteNumber-1)
+    lastVirtualKeyboardNoteNumber(virtualKeyboardMinimumNoteNumber-1),
+    filterEnvelopeAmount(0.0)
 {
   TRACE;
 
@@ -46,7 +55,7 @@ Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
   GetParam(mWaveform)->InitEnum("Waveform", OSCILLATOR_MODE_SINE, kNumOscillatorModes);
   GetParam(mWaveform)->SetDisplayText(0, "Sine");
   IBitmap waveformBitmap = pGraphics->LoadIBitmap(WAVEFORM_ID, WAVEFORM_FN, 4);
-  pGraphics->AttachControl(new ISwitchControl(this, 24, 53, mWaveform, &waveformBitmap));
+  pGraphics->AttachControl(new ISwitchControl(this, 24, 38, mWaveform, &waveformBitmap));
 
   IBitmap knobBitmap = pGraphics->LoadIBitmap(KNOB_ID, KNOB_FN, 64); //adsr knobs
 
@@ -59,12 +68,44 @@ Synthesis::Synthesis(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new IKnobMultiControl(this, 177, 34, mDecay, &knobBitmap));
 
   GetParam(mSustain)->InitDouble("Sustain", 0.1, 0.001, 1.0, 0.001);
-  GetParam(mSustain)->SetShape(3);
+  GetParam(mSustain)->SetShape(2);
   pGraphics->AttachControl(new IKnobMultiControl(this, 259, 34, mSustain, &knobBitmap));
 
   GetParam(mRelease)->InitDouble("Release", 1.0, 0.001, 15.0, 0.001);
   GetParam(mRelease)->SetShape(3);
   pGraphics->AttachControl(new IKnobMultiControl(this, 341, 34, mRelease, &knobBitmap));
+
+  GetParam(mFilterMode)->InitEnum("FilterMode", Filter::FILTER_MODE_LOWPASS, Filter::kNumFilterModes);
+  IBitmap filtermodeBitmap = pGraphics->LoadIBitmap(FILTERMODE_ID, FILTERMODE_FN, 3);
+  pGraphics->AttachControl(new ISwitchControl(this, 24, 123, mFilterMode, &filtermodeBitmap));
+
+  IBitmap smallKnobBitmap = pGraphics->LoadIBitmap(KNOB_SMALL_ID, KNOB_SMALL_FN, 64);
+
+  GetParam(mFilterCutoff)->InitDouble("Cutoff", 0.99, 0.01, 0.99, 0.001); //cutoff knob
+  GetParam(mFilterCutoff)->SetShape(2);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 5, 177, mFilterCutoff, &smallKnobBitmap));
+
+  GetParam(mFilterResonance)->InitDouble("Resonance", 0.01, 0.01, 1.0, 0.001); //reso knob
+  pGraphics->AttachControl(new IKnobMultiControl(this, 61, 177, mFilterResonance, &smallKnobBitmap));
+
+  GetParam(mFilterAttack)->InitDouble("Filter Env Attack", 0.01, 0.01, 10.0, 0.001); //filter env attack
+  GetParam(mFilterAttack)->SetShape(3);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 139, 178, mFilterAttack, &smallKnobBitmap));
+
+  GetParam(mFilterDecay)->InitDouble("Filter Env Decay", 0.5, 0.01, 15.0, 0.001); //filter env decay
+  GetParam(mFilterDecay)->SetShape(3);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 195, 178, mFilterDecay, &smallKnobBitmap));
+
+  GetParam(mFilterSustain)->InitDouble("Filter Env Sustain", 0.1, 0.001, 1.0, 0.001); //filter env sustain
+  GetParam(mFilterSustain)->SetShape(2);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 251, 178, mFilterSustain, &smallKnobBitmap));
+
+  GetParam(mFilterRelease)->InitDouble("Filter Env Release", 1.0, 0.001, 15.0, 0.001);
+  GetParam(mFilterRelease)->SetShape(3);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 307, 178, mFilterRelease, &smallKnobBitmap));
+
+  GetParam(mFilterEnvelopeAmount)->InitDouble("Filter Env Amount", 0.0, -1.0, 1.0, 0.001);
+  pGraphics->AttachControl(new IKnobMultiControl(this, 363, 178, mFilterEnvelopeAmount, &smallKnobBitmap));
 
   AttachGraphics(pGraphics);
 
@@ -93,8 +134,8 @@ void Synthesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nF
         mOscillator.setFrequency(mMidiReceiver.getLastFrequency());
 
         //leftOutput[i] = rightOutput[i] = mOscillator.nextSample()* velocity / 127.0;
-        
-        leftOutput[i] = rightOutput[i] = mOscillator.nextSample() * mEnvelopeGenerator.nextSample() * velocity / 127.0;
+        mFilter.setCutoffMod(mFilterEnvelopeGenerator.nextSample() * filterEnvelopeAmount);
+        leftOutput[i] = rightOutput[i] = mFilter.process(mOscillator.nextSample() * mEnvelopeGenerator.nextSample() * velocity / 127.0);
     }
     mMidiReceiver.Flush(nFrames);
 }
@@ -105,6 +146,7 @@ void Synthesis::Reset()
   IMutexLock lock(this);
   mOscillator.setSampleRate(GetSampleRate());
   mEnvelopeGenerator.setSampleRate(GetSampleRate());
+  mFilterEnvelopeGenerator.setSampleRate(GetSampleRate());
 }
 
 void Synthesis::OnParamChange(int paramIdx)
@@ -119,6 +161,30 @@ void Synthesis::OnParamChange(int paramIdx)
   case mSustain:
   case mRelease:
       mEnvelopeGenerator.setStageValue(static_cast<EnvelopeGenerator::EnvelopeStage>(paramIdx), GetParam(paramIdx)->Value());
+  case mFilterCutoff:
+      mFilter.setCutoff(GetParam(paramIdx)->Value());
+      break;
+  case mFilterResonance:
+      mFilter.setResonance(GetParam(paramIdx)->Value());
+      break;
+  case mFilterMode:
+      mFilter.setFilterMode(static_cast<Filter::FilterMode>(GetParam(paramIdx)->Int()));
+      break;
+  case mFilterAttack:
+      mFilterEnvelopeGenerator.setStageValue(EnvelopeGenerator::ENVELOPE_STAGE_ATTACK, GetParam(paramIdx)->Value());
+      break;
+  case mFilterDecay:
+      mFilterEnvelopeGenerator.setStageValue(EnvelopeGenerator::ENVELOPE_STAGE_DECAY, GetParam(paramIdx)->Value());
+      break;
+  case mFilterSustain:
+      mFilterEnvelopeGenerator.setStageValue(EnvelopeGenerator::ENVELOPE_STAGE_SUSTAIN, GetParam(paramIdx)->Value());
+      break;
+  case mFilterRelease:
+      mFilterEnvelopeGenerator.setStageValue(EnvelopeGenerator::ENVELOPE_STAGE_RELEASE, GetParam(paramIdx)->Value());
+      break;
+  case mFilterEnvelopeAmount:
+      filterEnvelopeAmount = GetParam(paramIdx)->Value();
+      break;
   }
 }
 

@@ -5,6 +5,7 @@
 #include "Oscillator.h"
 #include "MIDIReceiver.h"
 #include "EnvelopeGenerator.h"
+#include "Filter.h"
 
 class Synthesis : public IPlug
 {
@@ -27,9 +28,18 @@ private:
   MIDIReceiver mMidiReceiver;
   IControl* mVirtualKeyboard;
   EnvelopeGenerator mEnvelopeGenerator;
+  Filter mFilter;
+  EnvelopeGenerator mFilterEnvelopeGenerator;
+  double filterEnvelopeAmount;
   void processVirtualKeyboard();
-  inline void onNoteOn(const int noteNumber, const int velocity) { mEnvelopeGenerator.enterStage(EnvelopeGenerator::ENVELOPE_STAGE_ATTACK); };
-  inline void onNoteOff(const int noteNumber, const int velocity) { mEnvelopeGenerator.enterStage(EnvelopeGenerator::ENVELOPE_STAGE_RELEASE); };
+  inline void onNoteOn(const int noteNumber, const int velocity) { 
+	  mEnvelopeGenerator.enterStage(EnvelopeGenerator::ENVELOPE_STAGE_ATTACK); 
+	  mFilterEnvelopeGenerator.enterStage(EnvelopeGenerator::ENVELOPE_STAGE_ATTACK);
+  };
+  inline void onNoteOff(const int noteNumber, const int velocity) { 
+	  mEnvelopeGenerator.enterStage(EnvelopeGenerator::ENVELOPE_STAGE_RELEASE); 
+	  mFilterEnvelopeGenerator.enterStage(EnvelopeGenerator::ENVELOPE_STAGE_RELEASE);
+  };
   inline void onBeganEnvelopeCycle() { mOscillator.setMuted(false); }
   inline void onFinishedEnvelopecycle() { mOscillator.setMuted(true); }
 };
