@@ -30,6 +30,8 @@ private:
   EnvelopeGenerator mEnvelopeGenerator;
   Filter mFilter;
   EnvelopeGenerator mFilterEnvelopeGenerator;
+  Oscillator mLFO;
+  double lfoFilterModAmount;
   double filterEnvelopeAmount;
   void processVirtualKeyboard();
   inline void onNoteOn(const int noteNumber, const int velocity) { 
