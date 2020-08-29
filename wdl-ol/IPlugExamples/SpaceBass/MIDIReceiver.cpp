@@ -18,11 +18,6 @@ void MIDIReceiver::advance() {
 			if (mKeyStatus[noteNumber] == false) {
 				mKeyStatus[noteNumber] = true;
 				mNumKeys += 1;
-			}
-			if (noteNumber != mLastNoteNumber) {
-				mLastNoteNumber = noteNumber;
-				mLastFrequency = noteNumberToFrequency(mLastNoteNumber);
-				mLastVelocity = velocity;
 				noteOn(noteNumber, velocity);
 			}
 		}
@@ -30,10 +25,7 @@ void MIDIReceiver::advance() {
 			if (mKeyStatus[noteNumber] == true) {
 				mKeyStatus[noteNumber] = false;
 				mNumKeys -= 1;
-			}
-			if (noteNumber == mLastNoteNumber) {
-				mLastNoteNumber = -1;
-				noteOff(noteNumber, mLastVelocity);
+				noteOff(noteNumber, velocity);
 			}
 		}
 		mMidiQueue.Remove();

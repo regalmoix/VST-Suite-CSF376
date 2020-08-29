@@ -91,10 +91,8 @@ SpaceBass::SpaceBass(IPlugInstanceInfo instanceInfo)
   CreateGraphics();
   CreatePresets();
 
-  mMidiReceiver.noteOn.Connect(this, &SpaceBass::onNoteOn);
-  mMidiReceiver.noteOff.Connect(this, &SpaceBass::onNoteOff);
-  mEnvelopeGenerator.beganEnvelopeCycle.Connect(this, &SpaceBass::onBeganEnvelopeCycle);
-  mEnvelopeGenerator.finishedEnvelopeCycle.Connect(this, &SpaceBass::onFinishedEnvelopecycle);
+  mMidiReceiver.noteOn.Connect(&voiceManager, &VoiceManager::onNoteOn);
+  mMidiReceiver.noteOff.Connect(&voiceManager, &VoiceManager::onNoteOff);
 }
 
 SpaceBass::~SpaceBass() {}
@@ -109,12 +107,7 @@ void SpaceBass::ProcessDoubleReplacing(double** inputs, double** outputs, int nF
     for (int i = 0; i < nFrames; ++i) {
         mMidiReceiver.advance();
         int velocity = mMidiReceiver.getLastVelocity();
-        double lfoFilterModulation = mLFO.nextSample() * lfoFilterModAmount;
-        mOscillator.setFrequency(mMidiReceiver.getLastFrequency());
-
-        //leftOutput[i] = rightOutput[i] = mOscillator.nextSample()* velocity / 127.0;
-        mFilter.setCutoffMod((mFilterEnvelopeGenerator.nextSample() * filterEnvelopeAmount)+lfoFilterModulation);
-        leftOutput[i] = rightOutput[i] = mFilter.process(mOscillator.nextSample() * mEnvelopeGenerator.nextSample() * velocity / 127.0);
+        leftOutput[i] = rightOutput[i] = voiceManager.nextSample() ;
     }
     mMidiReceiver.Flush(nFrames);
 }
@@ -123,10 +116,8 @@ void SpaceBass::Reset()
 {
   TRACE;
   IMutexLock lock(this);
-  mOscillator.setSampleRate(GetSampleRate());
-  mEnvelopeGenerator.setSampleRate(GetSampleRate());
-  mFilterEnvelopeGenerator.setSampleRate(GetSampleRate());
-  mLFO.setSampleRate(GetSampleRate());
+  double sampleRate=GetSampleRate();
+  voiceManager.setSampleRate(sampleRate);
 }
 
 void SpaceBass::OnParamChange(int paramIdx)
