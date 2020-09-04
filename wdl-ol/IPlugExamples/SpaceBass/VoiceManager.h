@@ -1,6 +1,6 @@
 #pragma once
 #include "Voice.h"
-
+#include <functional>
 class VoiceManager {
 public:
 	void onNoteOn(int noteNumber, int velocity);
@@ -14,6 +14,58 @@ public:
 			voice.mOscillatorTwo.setSampleRate(sampleRate);
 		}
 		mLFO.setSampleRate(sampleRate);
+	}
+	inline void setLFOMode(Oscillator::OscillatorMode mode) { mLFO.setMode(mode); };
+	inline void setLFOFrequency(double frequency) { mLFO.setFrequency(frequency); };
+	typedef std::function<void(Voice&)> VoiceChangerFunction;
+	inline void changeAllVoices(VoiceChangerFunction changer) {
+		for (int i = 0; i < NumberOfVoices; i++) {
+			changer(voices[i]);
+		}
+	}
+	static void setVolumeEnvelopeStageValue(Voice& voice, EnvelopeGenerator::EnvelopeStage stage, double value) {
+		voice.mVolumeEnvelope.setStageValue(stage, value);
+	}
+	static void setFilterEnvelopeStageValue(Voice& voice, EnvelopeGenerator::EnvelopeStage stage, double value) {
+		voice.mFilterEnvelope.setStageValue(stage, value);
+	}
+	static void setOscillatorMode(Voice& voice, int oscillatorNumber, Oscillator::OscillatorMode mode) {
+		switch (oscillatorNumber) {
+		case 1:
+			voice.mOscillatorOne.setMode(mode);
+			break;
+		case 2:
+			voice.mOscillatorTwo.setMode(mode);
+			break;
+		}
+	}
+	static void setOscillatorPitchMod(Voice& voice, int oscillatorNumber, double amount) {
+		switch (oscillatorNumber) {
+		case 1:
+			voice.setOscillatorOnePitchAmount(amount);
+			break;
+		case 2:
+			voice.setOscillatorTwoPitchAmount(amount);
+			break;
+		}
+	}
+	static void setOscillatorMix(Voice& voice, double value) {
+		voice.setOscillatorMix(value);
+	}
+	static void setFilterCutoff(Voice& voice, double cutoff) {
+		voice.mFilter.setCutoff(cutoff);
+	}
+	static void setFilterResonance(Voice& voice, double resonance) {
+		voice.mFilter.setResonance(resonance);
+	}
+	static void setFilterMode(Voice& voice, Filter::FilterMode mode) {
+		voice.mFilter.setFilterMode(mode);
+	}
+	static void setFilterEnvAmount(Voice& voice, double amount) {
+		voice.setFilterEnvelopeAmount(amount);
+	}
+	static void setFilterLFOAmount(Voice& voice, double amount) {
+		voice.setFilterLFOAmount(amount);
 	}
 private:
 	static const int NumberOfVoices = 64;

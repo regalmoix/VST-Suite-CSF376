@@ -32,9 +32,6 @@ public:
 
 	inline bool getKeyStatus(int keyIndex) const { return mKeyStatus[keyIndex]; }
 	inline int getNumKeys() const { return mNumKeys; }
-	inline int getLastNoteNumber() const { return mLastNoteNumber; }
-	inline double getLastFrequency() const { return mLastFrequency; }
-	inline int getLastVelocity() const { return mLastVelocity; }
 	void advance();
 	void onMessageReceived(IMidiMsg* midiMessage);
 	inline void Flush(int nFrames) { mMidiQueue.Flush(nFrames); mOffset = 0; }

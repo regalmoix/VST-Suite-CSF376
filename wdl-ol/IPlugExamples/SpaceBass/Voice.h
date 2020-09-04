@@ -1,5 +1,5 @@
 #pragma once
-#include "Oscillator.h"
+#include "PolyBLEPOscillator.h"
 #include "EnvelopeGenerator.h"
 #include "Filter.h"
 
@@ -34,8 +34,8 @@ public:
 	void setFree();
 	void reset();
 private:
-	Oscillator mOscillatorOne;
-	Oscillator mOscillatorTwo;
+	PolyBLEPOscillator mOscillatorOne;
+	PolyBLEPOscillator mOscillatorTwo;
 	EnvelopeGenerator mVolumeEnvelope;
 	EnvelopeGenerator mFilterEnvelope;
 	Filter mFilter;

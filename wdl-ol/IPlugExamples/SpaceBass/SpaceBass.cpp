@@ -4,6 +4,7 @@
 #include "IKeyboardControl.h"
 #include "resource.h"
 #include <math.h>
+#include <functional>
 const int kNumPrograms = 5;
 const double parameterStep = 0.001;
 enum EParams
@@ -106,7 +107,6 @@ void SpaceBass::ProcessDoubleReplacing(double** inputs, double** outputs, int nF
     processVirtualKeyboard();
     for (int i = 0; i < nFrames; ++i) {
         mMidiReceiver.advance();
-        int velocity = mMidiReceiver.getLastVelocity();
         leftOutput[i] = rightOutput[i] = voiceManager.nextSample() ;
     }
     mMidiReceiver.Flush(nFrames);
@@ -123,7 +123,78 @@ void SpaceBass::Reset()
 void SpaceBass::OnParamChange(int paramIdx)
 {
   IMutexLock lock(this);
-  
+  IParam* param = GetParam(paramIdx);
+  if (paramIdx == mLFOWaveform) {
+      voiceManager.setLFOMode(static_cast<Oscillator::OscillatorMode>(param->Int()));
+  }
+  else if (paramIdx == mLFOFrequency) {
+      voiceManager.setLFOFrequency(param->Value());
+  }
+  else {
+      using std::placeholders::_1;
+      using std::bind;
+      VoiceManager::VoiceChangerFunction changer;
+      switch (paramIdx) {
+      case mOsc1Waveform:
+          changer = bind(&VoiceManager::setOscillatorMode, _1, 1, static_cast<Oscillator::OscillatorMode>(param->Int()));
+          break;
+      case mOsc1PitchMod:
+          changer = bind(&VoiceManager::setOscillatorPitchMod, _1, 1, param->Value());
+          break;
+      case mOsc2Waveform:
+          changer = bind(&VoiceManager::setOscillatorMode, _1, 2, static_cast<Oscillator::OscillatorMode>(param->Int()));
+          break;
+      case mOsc2PitchMod:
+          changer = bind(&VoiceManager::setOscillatorPitchMod, _1, 2, param->Value());
+          break;
+      case mOscMix:
+          changer = bind(&VoiceManager::setOscillatorMix, _1, param->Value());
+          break;
+          // Filter Section:
+      case mFilterMode:
+          changer = bind(&VoiceManager::setFilterMode, _1, static_cast<Filter::FilterMode>(param->Int()));
+          break;
+      case mFilterCutoff:
+          changer = bind(&VoiceManager::setFilterCutoff, _1, param->Value());
+          break;
+      case mFilterResonance:
+          changer = bind(&VoiceManager::setFilterResonance, _1, param->Value());
+          break;
+      case mFilterLfoAmount:
+          changer = bind(&VoiceManager::setFilterLFOAmount, _1, param->Value());
+          break;
+      case mFilterEnvAmount:
+          changer = bind(&VoiceManager::setFilterEnvAmount, _1, param->Value());
+          break;
+          // Volume Envelope:
+      case mVolumeEnvAttack:
+          changer = bind(&VoiceManager::setVolumeEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_ATTACK, param->Value());
+          break;
+      case mVolumeEnvDecay:
+          changer = bind(&VoiceManager::setVolumeEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_DECAY, param->Value());
+          break;
+      case mVolumeEnvSustain:
+          changer = bind(&VoiceManager::setVolumeEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_SUSTAIN, param->Value());
+          break;
+      case mVolumeEnvRelease:
+          changer = bind(&VoiceManager::setVolumeEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_RELEASE, param->Value());
+          break;
+          // Filter Envelope:
+      case mFilterEnvAttack:
+          changer = bind(&VoiceManager::setFilterEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_ATTACK, param->Value());
+          break;
+      case mFilterEnvDecay:
+          changer = bind(&VoiceManager::setFilterEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_DECAY, param->Value());
+          break;
+      case mFilterEnvSustain:
+          changer = bind(&VoiceManager::setFilterEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_SUSTAIN, param->Value());
+          break;
+      case mFilterEnvRelease:
+          changer = bind(&VoiceManager::setFilterEnvelopeStageValue, _1, EnvelopeGenerator::ENVELOPE_STAGE_RELEASE, param->Value());
+          break;
+      }
+      voiceManager.changeAllVoices(changer);
+  }
 }
 
 void SpaceBass::CreatePresets() {

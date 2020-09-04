@@ -72,8 +72,22 @@ void Oscillator::generate(double* buffer, int nFrames) {
 }
 
 double Oscillator::nextSample() {
-	double value = 0.0;
-	switch (mOscillatorMode) {
+	double value = naiveWaveformForMode(mOscillatorMode);
+	mPhase += mPhaseIncrement;
+	while (mPhase >= twoPI) {
+		mPhase -= twoPI;
+	}
+	return value;
+}
+
+void Oscillator::setPitchMod(double amount) {
+	mPitchMod = amount;
+	updateIncrement();
+}
+
+double Oscillator::naiveWaveformForMode(OscillatorMode mode) {
+	double value=0.0;
+	switch (mode) {
 	case OSCILLATOR_MODE_SINE:
 		value = sin(mPhase);
 		break;
@@ -93,14 +107,5 @@ double Oscillator::nextSample() {
 		value = 2.0 * (fabs(value) - 0.5);
 		break;
 	}
-	mPhase += mPhaseIncrement;
-	while (mPhase >= twoPI) {
-		mPhase -= twoPI;
-	}
 	return value;
-}
-
-void Oscillator::setPitchMod(double amount) {
-	mPitchMod = amount;
-	updateIncrement();
 }

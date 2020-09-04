@@ -19,7 +19,7 @@ public:
 	void generate(double* buffer, int nFrames);
 	void setPitchMod(double amount);
 	inline void setMuted(bool muted) { isMuted = muted; }
-	double nextSample();
+	virtual double nextSample();
 	Oscillator() :
 		mOscillatorMode(OSCILLATOR_MODE_SINE),
 		mPI(2 * acos(0.0)),
@@ -31,7 +31,7 @@ public:
 		updateIncrement();
 	};
 	void reset() { mPhase = 0.0; }
-private:
+protected:
 	OscillatorMode mOscillatorMode;
 	const double mPI;
 	const double twoPI;
@@ -42,4 +42,5 @@ private:
 	double mPhaseIncrement;
 	double mPitchMod;
 	void updateIncrement();
+	double naiveWaveformForMode(OscillatorMode mode);
 };

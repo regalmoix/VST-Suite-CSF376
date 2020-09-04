@@ -11,6 +11,7 @@
     <ClCompile Include="Filter.cpp" />
     <ClCompile Include="Voice.cpp" />
     <ClCompile Include="VoiceManager.cpp" />
+    <ClCompile Include="PolyBLEPOscillator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SpaceBass.h" />
@@ -26,6 +27,7 @@
     <ClInclude Include="Filter.h" />
     <ClInclude Include="Voice.h" />
     <ClInclude Include="VoiceManager.h" />
+    <ClInclude Include="PolyBLEPOscillator.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SpaceBass.rc" />
