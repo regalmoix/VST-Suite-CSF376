@@ -19,7 +19,7 @@ double PolyBLEPOscillator::nextSample() {
 	if (mOscillatorMode == OSCILLATOR_MODE_SINE) {
 		value = naiveWaveformForMode(OSCILLATOR_MODE_SINE);
 	}
-	else if (mOscillatorMode = OSCILLATOR_MODE_SAW) {
+	else if (mOscillatorMode == OSCILLATOR_MODE_SAW) {
 		value = naiveWaveformForMode(OSCILLATOR_MODE_SAW);
 		value -= poly_blep(t);
 	}
@@ -27,7 +27,7 @@ double PolyBLEPOscillator::nextSample() {
 		value = naiveWaveformForMode(OSCILLATOR_MODE_SQUARE);
 		value += poly_blep(t);
 		value -= poly_blep(fmod(t + 0.5, 1.0));
-		if (mOscillatorMode = OSCILLATOR_MODE_TRIANGLE) {
+		if (mOscillatorMode == OSCILLATOR_MODE_TRIANGLE) {
 			value = mPhaseIncrement * value + (1 - mPhaseIncrement) * lastOutput;
 			lastOutput = value;
 		}
