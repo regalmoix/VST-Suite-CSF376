@@ -15,9 +15,7 @@ private:
 	int mNumKeys;
 	bool mKeyStatus[keyCount];
 	int mOffset;
-	inline double noteNumberToFrequency(int noteNumber) {
-		return 440.0 * pow(2.0, (noteNumber - 69.0) / 12.0);
-	}
+	
 public:
 	MIDIReceiver() :
 		mNumKeys(0),
