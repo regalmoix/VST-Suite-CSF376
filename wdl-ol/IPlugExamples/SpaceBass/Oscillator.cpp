@@ -92,10 +92,10 @@ double Oscillator::naiveWaveformForMode(OscillatorMode mode) {
 		value = sin(mPhase);
 		break;
 	case OSCILLATOR_MODE_SAW:
-		value = 1.0 - (2.0 * mPhase / twoPI);
+		value = (2.0 * mPhase / twoPI) - 1.0;
 		break;
 	case OSCILLATOR_MODE_SQUARE:
-		if (mPhase <= mPI) {
+		if (mPhase < mPI) {
 			value = 1.0;
 		}
 		else {
