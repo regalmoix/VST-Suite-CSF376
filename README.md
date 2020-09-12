@@ -5,6 +5,8 @@ The repo also contains copies of the following libraries:
 1. wdl-ol (https://github.com/olilarkin/wdl-ol) - Oli Larkin's enhancement of Cockos' iPlug, now no longer maintained
 2. iPlug2 (https://github.com/iPlug2/iPlug2) - The continuation of iPlug/wdl-ol, still a pre-release.
 
+Within the wdl-ol/IPlugExamples folder are implementations of plugin examples (DigitalDistortion, SpaceBass) from Martin Finke's tutorial series blog (http://www.martin-finke.de/blog/)
+
 A few tips for patching the required libraries before compiling a plugin written in wdl-ol:
 1. Steinberg VST3 SDK’s VST2 port folder lacks the following files: aeffect.h and aeffectx.h, both deprecated, but required by wdl-ol. Fix: get files from a VST SDK 2.4 online archive (or a GitHub gist).
 2. While patching the VST3 SDK, copy the thread folder in public.sdk as well due to dependencies.
