@@ -9,11 +9,11 @@ double Filter::process(double inputValue) {
 	buf3 += calculatedCutoff * (buf2 - buf3);
 	switch (mode) {
 	case FILTER_MODE_LOWPASS:
-		return buf1;
+		return buf3;
 	case FILTER_MODE_HIGHPASS:
-		return inputValue - buf0;
+		return inputValue - buf3;
 	case FILTER_MODE_BANDPASS:
-		return buf0 - buf1;
+		return buf0 - buf3;
 	default:
 		return 0.0;
 	}
