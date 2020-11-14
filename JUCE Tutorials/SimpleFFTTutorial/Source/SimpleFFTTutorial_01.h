@@ -57,7 +57,8 @@ public:
     {
         setOpaque (true);
         setAudioChannels (2, 0);  // we want a couple of input channels but no outputs
-        startTimerHz (60);
+        //startTimerHz (60);
+        startTimerHz (128);
         setSize (700, 500);
     }
 
@@ -123,7 +124,8 @@ public:
             spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
         }
     }
-    static constexpr auto fftOrder = 10;
+    //static constexpr auto fftOrder = 10;
+    static constexpr auto fftOrder = 12;
     static constexpr auto fftSize = 1 << fftOrder;
 private:
     juce::Image spectrogramImage;
