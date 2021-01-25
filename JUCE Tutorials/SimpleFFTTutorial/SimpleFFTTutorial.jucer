@@ -51,18 +51,18 @@
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SimpleFFTTutorial"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_devices" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_formats" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_processors" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_utils" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_core" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_data_structures" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_dsp" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_events" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_graphics" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_basics" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_extra" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_dsp" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="D:\juce-6.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="D:\juce-6.0.4-windows\JUCE\modules"/>
       </MODULEPATHS>
     </VS2019>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile">

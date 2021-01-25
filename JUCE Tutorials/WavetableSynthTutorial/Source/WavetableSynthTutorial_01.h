@@ -47,6 +47,11 @@
 
 #pragma once
 
+#define freqRangeLeft 30.0f
+#define freqRangeRight 5000.0f
+
+#include <algorithm>
+
 //==============================================================================
 class WavetableOscillator
 {
@@ -58,9 +63,13 @@ public:
         jassert(wavetable.getNumChannels() == 1);
     }
 
-    void setFrequency(float frequency, float sampleRate)
+    void setCurrentSampleRate(float sampleRate) {
+        currentSampleRate = sampleRate;
+    }
+
+    void setFrequency(float frequency)
     {
-        auto tableSizeOverSampleRate = (float)tableSize / sampleRate;
+        auto tableSizeOverSampleRate = (float)tableSize / currentSampleRate;
         tableDelta = frequency * tableSizeOverSampleRate;
     }
 
@@ -86,7 +95,7 @@ public:
 private:
     const juce::AudioSampleBuffer& wavetable;
     const int tableSize;
-    float currentIndex = 0.0f, tableDelta = 0.0f;
+    float currentIndex = 0.0f, tableDelta = 0.0f, currentSampleRate;
 };
 
 //==============================================================================
@@ -101,9 +110,34 @@ public:
         addAndMakeVisible(cpuUsageLabel);
         addAndMakeVisible(cpuUsageText);
 
-        createWavetable();
+        freqSlider.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
+        freqSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxLeft, true, 50, 50);
+        freqSlider.setRange(freqRangeLeft, freqRangeRight, 0.01f);
+        freqSlider.setValue(100.0f, juce::dontSendNotification);
+        freqSlider.onValueChange = [this] {
+            for (auto oscillatorIndex = 0; oscillatorIndex < oscillators.size(); ++oscillatorIndex)
+            {
+                auto* oscillator = oscillators.getUnchecked(oscillatorIndex);
+                oscillator->setFrequency((float)freqSlider.getValue());
+            }
+        };
 
-        setSize(400, 200);
+        addAndMakeVisible(freqSlider);
+
+        waveChooser.setEditableText(false);
+        waveChooser.setJustificationType(juce::Justification::centred);
+        waveChooser.addItemList({ "Sine", "Square", "Triangle", "Saw" }, 1);
+        waveChooser.onChange = [this] {
+            createWavetable(waveChooser.getSelectedId() - 1);
+        };
+        addAndMakeVisible(waveChooser);
+
+        freqLabel.setText("Frequency", juce::NotificationType::dontSendNotification);
+        addAndMakeVisible(freqLabel);
+
+        createWavetable(0);
+
+        setSize(700, 300);
         setAudioChannels(0, 2); // no inputs, two outputs
         startTimer(50);
     }
@@ -117,6 +151,11 @@ public:
     {
         cpuUsageLabel.setBounds(10, 10, getWidth() - 20, 20);
         cpuUsageText.setBounds(10, 10, getWidth() - 20, 20);
+
+        freqSlider.setBounds( getWidth()/2 - 200, getHeight()/4 - 50, 400, 100 );
+        freqLabel.setBounds(getWidth() / 2 - 300, getHeight() / 4 - 50, 100, 100);
+
+        waveChooser.setBounds(getWidth() / 2 - 200, 3*getHeight() / 4 - 50, 400, 100);
     }
 
     void timerCallback() override
@@ -125,15 +164,26 @@ public:
         cpuUsageText.setText(juce::String(cpu, 6) + " %", juce::dontSendNotification);
     }
 
-    void createWavetable()
+    void createWavetable(int waveType)
     {
         sineTable.setSize(1, (int)tableSize + 1);
         sineTable.clear();
 
         auto* samples = sineTable.getWritePointer(0);
 
-        int harmonics[] = { 1, 3, 5, 6, 7, 9, 13, 15 };
-        float harmonicWeights[] = { 0.5f, 0.1f, 0.05f, 0.125f, 0.09f, 0.005f, 0.002f, 0.001f };     // [1]
+        //float a_var = 0.816055;
+        //const b_var = 7.0f;
+
+        //int harmonics[] = { 1, 3, 5, 6, 7, 9, 13, 15 };
+        //float harmonicWeights[] = { 0.5f, 0.1f, 0.05f, 0.125f, 0.09f, 0.005f, 0.002f, 0.001f };     // [1]
+        int harmonics[] = { 1 };
+        float harmonicWeights[] = { 1.0f };
+
+        //harmonics and weights for the Weierstrass Function, expressed as a sum of cos terms
+        //uncomment to use, but remember that it sounds like shit
+
+        //float harmonics[] = { 0.5f, 3.5f, 24.5f, 171.5f, 1200.5f, 8403.5f, 58824.5 };
+        //float harmonicWeights[] = { 1.0f, 0.8160556f, 0.6659467f, 0.5434495f, 0.443485f, 0.3619084f, 0.2953374f };
 
         jassert(juce::numElementsInArray(harmonics) == juce::numElementsInArray(harmonicWeights));
 
@@ -144,9 +194,12 @@ public:
 
             for (unsigned int i = 0; i < tableSize; ++i)
             {
-                auto sample = std::sin(currentAngle);
+                //auto sample = std::sin(currentAngle);
+                auto sample = functLambdaArray[waveType](currentAngle);
                 samples[i] += (float)sample * harmonicWeights[harmonic];                           // [3]
                 currentAngle += angleDelta;
+                if (currentAngle > juce::MathConstants<float>::twoPi)
+                    currentAngle -= juce::MathConstants<float>::twoPi;
             }
         }
 
@@ -161,10 +214,12 @@ public:
         {
             auto* oscillator = new WavetableOscillator(sineTable);
 
-            auto midiNote = juce::Random::getSystemRandom().nextDouble() * 36.0 + 48.0;
-            auto frequency = 440.0 * pow(2.0, (midiNote - 69.0) / 12.0);
+            //auto midiNote = juce::Random::getSystemRandom().nextDouble() * 36.0 + 48.0;
+            //auto frequency = 440.0 * pow(2.0, (midiNote - 69.0) / 12.0);
+            auto frequency = juce::Random::getSystemRandom().nextDouble() * (freqRangeRight - freqRangeLeft) + freqRangeLeft;
 
-            oscillator->setFrequency((float)frequency, (float)sampleRate);
+            oscillator->setCurrentSampleRate((float)sampleRate);
+            oscillator->setFrequency((float)(frequency));
             oscillators.add(oscillator);
         }
 
@@ -197,6 +252,22 @@ public:
 private:
     juce::Label cpuUsageLabel;
     juce::Label cpuUsageText;
+
+    juce::Label freqLabel;
+    juce::Slider freqSlider;
+
+    juce::ComboBox waveChooser;
+
+    std::function<float(float)> functLambdaArray[4] = {
+        [](float x) { return std::sin(x); },
+        [](float x) { return x < juce::MathConstants<float>::pi ? 0 : 1; },
+        [](float x) { return x > 3.0f * juce::MathConstants<float>::halfPi ?
+                                4.0f - x / juce::MathConstants<float>::halfPi :
+                             x > juce::MathConstants<float>::halfPi ?
+                                x / juce::MathConstants<float>::halfPi - 2.0f :
+                                - x / juce::MathConstants<float>::halfPi; },
+        [](float x) { return x / juce::MathConstants<float>::pi - 1; }
+    };
 
     const unsigned int tableSize = 1 << 7;
     float level = 0.0f;

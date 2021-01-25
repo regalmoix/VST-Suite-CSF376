@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="B1WsYo" name="SineOsc" projectType="guiapp" jucerVersion="5.4.7"
-              displaySplashScreen="1">
+<JUCERPROJECT id="B1WsYo" name="SineOsc" projectType="guiapp" displaySplashScreen="1"
+              jucerFormatVersion="1">
   <MAINGROUP id="FZdKN8" name="SineOsc">
     <GROUP id="{E2970A9E-9696-2BD9-1A93-E23DC2595BFC}" name="Source">
       <FILE id="TJc9Pe" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>

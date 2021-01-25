@@ -50,17 +50,17 @@
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="WavetableSynthTutorial"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_devices" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_formats" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_processors" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_utils" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_core" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_data_structures" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_events" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_graphics" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_basics" path="C:\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_extra" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="D:\JUCE\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="D:\JUCE\JUCE\modules"/>
       </MODULEPATHS>
     </VS2019>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile">

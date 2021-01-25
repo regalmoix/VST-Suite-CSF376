@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="F5qyvu" name="NoiseOsc" projectType="guiapp" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1">
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="yl1bLz" name="NoiseOsc">
     <GROUP id="{672D0571-D6CB-768B-DE34-F65B593B8790}" name="Source">
       <FILE id="bfbQFz" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
