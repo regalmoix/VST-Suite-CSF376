@@ -47,8 +47,9 @@
 
 #pragma once
 
-#define freqRangeLeft 30.0f
-#define freqRangeRight 5000.0f
+#define freqRangeLeft 0.0f
+#define freqRangeRight 10.0f
+#define freqStep 1.0f
 #define WAVETABLE_CNT 5
 #define OSC_CNT 3
 
@@ -101,14 +102,16 @@ public:
     void changeWavetable(juce::AudioSampleBuffer& newWavetableToUse) {
         //jassert(newWavetableToUse.getNumSamples() == wavetable.getNumSamples());
         //tableSize = newWavetableToUse.getNumSamples() + 1;
-        wavetable.setSize(1, tableSize, false, true, true);
+        wavetable.setSize(1, newWavetableToUse.getNumSamples(), false, true, true);
         auto sampleSrc = newWavetableToUse.getReadPointer(0);
         auto sampleDst = wavetable.getWritePointer(0);
         for (int i = 0; i < tableSize-1; i++) {
             sampleDst[i] = sampleSrc[i];
         }
 
-        sampleDst[tableSize] = sampleDst[0];
+        sampleDst[tableSize-1] = sampleDst[0];
+
+        currentIndex = 0;
     }
 
 private:
@@ -126,7 +129,7 @@ public:
 
         freqSlider1.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
         freqSlider1.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxBelow, true, 50, 50);
-        freqSlider1.setRange(freqRangeLeft, freqRangeRight, 0.01f);
+        freqSlider1.setRange(freqRangeLeft, freqRangeRight, freqStep);
         freqSlider1.setValue(100.0f, juce::dontSendNotification);
         freqSlider1.onValueChange = [this] {
             oscillators[0]->setFrequency((float)freqSlider1.getValue());
@@ -135,7 +138,7 @@ public:
 
         freqSlider2.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
         freqSlider2.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxBelow, true, 50, 50);
-        freqSlider2.setRange(freqRangeLeft, freqRangeRight, 0.01f);
+        freqSlider2.setRange(freqRangeLeft, freqRangeRight, freqStep);
         freqSlider2.setValue(100.0f, juce::dontSendNotification);
         freqSlider2.onValueChange = [this] {
             oscillators[1]->setFrequency((float)freqSlider2.getValue());
@@ -144,7 +147,7 @@ public:
 
         freqSlider3.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
         freqSlider3.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxBelow, true, 50, 50);
-        freqSlider3.setRange(freqRangeLeft, freqRangeRight, 0.01f);
+        freqSlider3.setRange(freqRangeLeft, freqRangeRight, freqStep);
         freqSlider3.setValue(100.0f, juce::dontSendNotification);
         freqSlider3.onValueChange = [this] {
             oscillators[2]->setFrequency((float)freqSlider3.getValue());
@@ -274,12 +277,12 @@ public:
     void prepareToPlay(int, double sampleRate) override
     {
         
-        auto frequency = juce::Random::getSystemRandom().nextDouble() * (freqRangeRight - freqRangeLeft) + freqRangeLeft;
+        //auto frequency = juce::Random::getSystemRandom().nextDouble() * (freqRangeRight - freqRangeLeft) + freqRangeLeft;
 
         for (auto i = 0; i < OSC_CNT; ++i)
         {
             oscillators[i]->setCurrentSampleRate((float)sampleRate);
-            oscillators[i]->setFrequency((float)(frequency));
+            oscillators[i]->setFrequency(100.0f);
         }
 
     }
