@@ -34,7 +34,7 @@ DistortAudioProcessorEditor::DistortAudioProcessorEditor (DistortAudioProcessor&
     };
     addAndMakeVisible(ceilSlider);
 
-    waveChooser.setEditableText(false);
+    /*waveChooser.setEditableText(false);
     waveChooser.setJustificationType(juce::Justification::centred);
     waveChooser.addItemList({ "Sine", "Custom" }, 1);
     waveChooser.onChange = [this] {
@@ -43,9 +43,14 @@ DistortAudioProcessorEditor::DistortAudioProcessorEditor (DistortAudioProcessor&
             audioProcessor.waveType = DistortAudioProcessor::WaveType::custom;
         else audioProcessor.waveType = DistortAudioProcessor::WaveType::sine;
     };
-    addAndMakeVisible(waveChooser);
+    addAndMakeVisible(waveChooser);*/
 
-    setSize ( 800, 600);
+    gainLabel.setJustificationType(juce::Justification::centred);
+    ceilLabel.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(&gainLabel);
+    addAndMakeVisible(&ceilLabel);
+
+    setSize ( 400, 300);
 }
 
 DistortAudioProcessorEditor::~DistortAudioProcessorEditor()
@@ -68,6 +73,8 @@ void DistortAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     gainSlider.setBounds(getWidth() / 2 - 100, getHeight() / 4 - 50, 200, 100);
-    ceilSlider.setBounds(getWidth() / 2 - 100, getHeight() / 2 - 50, 200, 100);
-    waveChooser.setBounds(getWidth() / 2 - 100, 3 * getHeight() / 4, 200, 50);
+    ceilSlider.setBounds(getWidth() / 2 - 100, 3 * getHeight() / 4 - 50, 200, 100);
+    gainLabel.setBounds(getWidth()/2 + 100, getHeight() / 4 - 25, 70, 50);
+    ceilLabel.setBounds(getWidth()/2 + 100, 3 * getHeight() / 4 - 25, 70, 50);
+    //waveChooser.setBounds(getWidth() / 2 - 100, 3 * getHeight() / 4, 200, 50);
 }

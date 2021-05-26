@@ -30,7 +30,9 @@ private:
     DistortAudioProcessor& audioProcessor;
 
     juce::Slider gainSlider, ceilSlider;
-    juce::ComboBox waveChooser;
+    juce::Label gainLabel{"", "Pre-Gain"};
+    juce::Label ceilLabel{"", "Threshold"};
+    //juce::ComboBox waveChooser;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DistortAudioProcessorEditor)
 };

@@ -10,15 +10,17 @@
 
 #include <JuceHeader.h>
 
+#include "voices.h"
+
 //==============================================================================
 /**
 */
-class DistortAudioProcessor  : public juce::AudioProcessor
+class NoteSliderAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    DistortAudioProcessor();
-    ~DistortAudioProcessor() override;
+    NoteSliderAudioProcessor();
+    ~NoteSliderAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -53,13 +55,26 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    double gainValue{ 1.0f }, ceilValue{ 0.5f };
-    /*enum WaveType {
-        sine,
-        custom
-    } waveType;*/
+    void update_pingpong(){
+        double pp_a, pp_b;
+        pp_b = speeds->pp_omega * speeds->pp_omega / currSamplingRate;
+        pp_a = 2 * speeds->pp_zeta * speeds->pp_omega / currSamplingRate;
+        speeds->pp_K1 = pp_b / currSamplingRate;
+        speeds->pp_K2 = 2.0f - pp_a - speeds->pp_K1;
+        speeds->pp_K3 = pp_a - 1;
+    }
+
+    double currSamplingRate = 44100.0f;
+
+    juce::Synthesiser synth;
+
+    //these will be declared on the heap
+    struct SpeedValues* speeds;
+    SineWaveVoice* synthVoices[5];
+    SineWaveSound* sineSound;
 
 private:
+
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DistortAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NoteSliderAudioProcessor)
 };

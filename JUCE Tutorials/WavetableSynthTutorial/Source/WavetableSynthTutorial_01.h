@@ -48,12 +48,12 @@
 #pragma once
 
 #define freqRangeLeft 0.0f
-#define freqRangeRight 10.0f
-#define freqStep 1.0f
+#define freqRangeRight 1000.0f
+#define freqStep 0.1f
 #define WAVETABLE_CNT 5
 #define OSC_CNT 3
 
-#include <algorithm>
+//#include <algorithm>
 
 //==============================================================================
 class WavetableOscillator
@@ -61,9 +61,12 @@ class WavetableOscillator
 public:
     WavetableOscillator(juce::AudioSampleBuffer wavetableToUse)
         : wavetable(wavetableToUse),
-        tableSize(wavetable.getNumSamples() - 1)
+        tableSize(wavetable.getNumSamples())// fft_engine(12)
     {
         jassert(wavetable.getNumChannels() == 1);
+        
+        freqSpecData = new float[65536];
+
     }
 
     void setCurrentSampleRate(float sampleRate) {
@@ -93,8 +96,8 @@ public:
 
         auto currentSample = value0 + frac * (value1 - value0);
 
-        if ((currentIndex += tableDelta) > (float)tableSize)
-            currentIndex -= (float)tableSize;
+        if ((currentIndex += tableDelta) > (float)tableSize-1)
+            currentIndex -= (float)(tableSize-1);
 
         return currentSample;
     }
@@ -102,22 +105,27 @@ public:
     void changeWavetable(juce::AudioSampleBuffer& newWavetableToUse) {
         //jassert(newWavetableToUse.getNumSamples() == wavetable.getNumSamples());
         //tableSize = newWavetableToUse.getNumSamples() + 1;
-        wavetable.setSize(1, newWavetableToUse.getNumSamples(), false, true, true);
+        tableSize = newWavetableToUse.getNumSamples()+1;
+        wavetable.setSize(1, tableSize, false, true, true);
         auto sampleSrc = newWavetableToUse.getReadPointer(0);
         auto sampleDst = wavetable.getWritePointer(0);
+
+        //deepcopying
         for (int i = 0; i < tableSize-1; i++) {
             sampleDst[i] = sampleSrc[i];
         }
 
-        sampleDst[tableSize-1] = sampleDst[0];
+        sampleDst[tableSize] = sampleDst[0];
 
         currentIndex = 0;
     }
 
 private:
     juce::AudioSampleBuffer wavetable;
-    const int tableSize;
+    //dsp::FFT fft_engine;
+    int tableSize;
     float currentIndex = 0.0f, tableDelta = 0.0f, currentSampleRate, currentFrequency;
+    float* freqSpecData;
 };
 
 //==============================================================================
@@ -261,7 +269,8 @@ public:
             reader->read(&waveTables[WAVETABLE_CNT - 1], 0, waveTables[WAVETABLE_CNT - 1].getNumSamples(), 0, true, false);
 
             oscill->changeWavetable(waveTables[WAVETABLE_CNT - 1]);
-            oscill->setLowestFrequency();
+            //oscill->setLowestFrequency();
+            oscill->setFrequency(100.0f);
         }
     }
 
@@ -274,7 +283,7 @@ public:
         }
     }
 
-    void prepareToPlay(int, double sampleRate) override
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override
     {
         
         //auto frequency = juce::Random::getSystemRandom().nextDouble() * (freqRangeRight - freqRangeLeft) + freqRangeLeft;
@@ -284,6 +293,12 @@ public:
             oscillators[i]->setCurrentSampleRate((float)sampleRate);
             oscillators[i]->setFrequency(100.0f);
         }
+
+        highPassFilter = new dsp::IIR::Filter<float>(highPassCoeffs.makeHighPass(sampleRate, 500.0f));
+
+        highPassFilter->reset();
+        dsp::ProcessSpec thisProcess = { sampleRate, (uint32)samplesPerBlockExpected, (uint32)1 };
+        highPassFilter->prepare(thisProcess);
 
     }
 
@@ -307,6 +322,24 @@ public:
             }
         }
 
+        //dsp::AudioBlock<float> block(&leftBuffer, 1, bufferToFill.numSamples);
+
+        dsp::AudioBlock<float> block(*bufferToFill.buffer, bufferToFill.startSample);
+
+        dsp::ProcessContextReplacing<float> processContext_(block);
+
+        highPassFilter->process(processContext_);
+
+        //highPassFilter->reset();
+
+        //dsp::AudioBlock<float> block2(&rightBuffer, 1, bufferToFill.numSamples);
+        //dsp::ProcessContextReplacing<float> processContext_2(block);
+
+        //highPassFilter->process(processContext_2);
+
+        //highPassFilter->process(leftBuffer);
+        //highPassFilter->process(rightBuffer);
+
     }
 
 private:
@@ -318,25 +351,25 @@ private:
         //sine wave
         [](float x) { return std::sin(x); },
         //square wave
-        [](float x) { return x < juce::MathConstants<float>::pi ? 0 : 1; },
+        [](float x) { return x < juce::MathConstants<float>::pi ? -1 : 1; },
         //triangle wave
-        [](float x) { return x > 3.0f * juce::MathConstants<float>::halfPi ?
-                                4.0f - x / juce::MathConstants<float>::halfPi :
-                             x > juce::MathConstants<float>::halfPi ?
-                                x / juce::MathConstants<float>::halfPi - 2.0f :
-                                - x / juce::MathConstants<float>::halfPi; },
+        [](float x) { return x > juce::MathConstants<float>::pi ? -2 * x / juce::MathConstants<float>::pi + 3
+                        : 2 * x / juce::MathConstants<float>::pi - 1; },
         //sawtooth wave
         [](float x) { return x / juce::MathConstants<float>::pi - 1; },
         //silence, will be filled up with custom wave
         [](float x) { return 0; }
     };
 
-    const unsigned int tableSize = 1 << 7;
+    const unsigned int tableSize = 1 << 12;
 
     juce::AudioFormatManager formatManager;
 
     juce::AudioSampleBuffer waveTables[WAVETABLE_CNT];
     juce::OwnedArray<WavetableOscillator> oscillators;
+
+    dsp::IIR::Coefficients<float> highPassCoeffs;
+    dsp::IIR::Filter<float> *highPassFilter;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };
