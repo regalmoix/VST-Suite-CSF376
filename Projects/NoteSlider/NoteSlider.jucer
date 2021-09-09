@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="Pp4fVG" name="NoteSlider" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
+<JUCERPROJECT id="Pp4fVG" name="NoteSlider" projectType="audioplug" jucerFormatVersion="1"
               pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
-              pluginVST3Category="Generator,Synth">
+              pluginVST3Category="Synth" projectLineFeed="&#10;" cppLanguageStandard="17"
+              pluginFormats="buildStandalone,buildVST3">
   <MAINGROUP id="XitAhv" name="NoteSlider">
     <GROUP id="{577B4D28-041C-2817-3464-368E1EB1BF23}" name="Source">
       <FILE id="ZDTYst" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -15,7 +15,8 @@
       <FILE id="e7uURo" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
     </GROUP>
   </MAINGROUP>
-  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"
+               JUCE_WEB_BROWSER="0"/>
   <EXPORTFORMATS>
     <VS2019 targetFolder="Builds/VisualStudio2019">
       <CONFIGURATIONS>
@@ -37,6 +38,28 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../JUCE/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" enableGNUExtensions="1">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" binaryPath="Builds/Plugin" linuxArchitecture="-march=native"
+                       recommendedWarnings="GCC"/>
+        <CONFIGURATION isDebug="0" name="Release" linuxArchitecture="-march=native"
+                       recommendedWarnings="GCC" linkTimeOptimisation="1" binaryPath="Builds/Plugin"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_gui_extra" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_gui_basics" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_graphics" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_events" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_data_structures" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_core" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_audio_utils" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_audio_processors" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_audio_formats" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_audio_devices" path="Builds/LinuxMakefile"/>
+        <MODULEPATH id="juce_audio_basics" path="Builds/LinuxMakefile"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
