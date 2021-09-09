@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="XOt1Kx" name="Equaliser" projectType="audioplug" projectLineFeed="&#10;"
+              cppLanguageStandard="17" pluginVSTCategory="kPlugCategEffect"
+              pluginVST3Category="Fx" pluginFormats="buildStandalone,buildVST3"
+              jucerFormatVersion="1" pluginManufacturer="nacagraw" pluginAUMainType="'aufx'"
+              pluginAAXCategory="0,8192" pluginRTASCategory="0,8192">
+  <MAINGROUP id="WkGktK" name="Equaliser">
+    <GROUP id="{25CF386D-AAFC-35F0-3998-944B46943C07}" name="Source">
+      <FILE id="eg19HC" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="c9ydGt" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="j6ofHp" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="ACXKU3" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" enableGNUExtensions="1">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" recommendedWarnings="GCC" linuxArchitecture="-march=native"
+                       binaryPath="Builds/Plugin/" enablePluginBinaryCopyStep="1"/>
+        <CONFIGURATION isDebug="0" name="Release" linuxArchitecture="-march=native"
+                       recommendedWarnings="GCC" linkTimeOptimisation="1" enablePluginBinaryCopyStep="1"
+                       vstBinaryLocation="$(HOME)/VSTPlugin/Builds/VST2" binaryPath="Builds/Plugin/"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_core" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_events" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../../usr/share/juce/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../usr/share/juce/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <LINUX/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"
+               JUCE_WEB_BROWSER="0"/>
+</JUCERPROJECT>
