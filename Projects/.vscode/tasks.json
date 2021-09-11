@@ -1,0 +1,70 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build WaveTable Synth",
+            "type": "shell",
+            "command": "cd WavetableSynth && ./build.sh",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "showReuseMessage": true
+            }
+        },
+
+        {
+            "label": "Build Equaliser",
+            "type": "shell",
+            "command": "cd Equaliser && ./build.sh",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "showReuseMessage": true
+            }
+        },
+
+        {
+            "label": "Build NoteSlider",
+            "type": "shell",
+            "command": "cd NoteSlider && ./build.sh",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "showReuseMessage": true
+            }
+        },
+
+        {
+            "label": "Build Distort",
+            "type": "shell",
+            "command": "cd Distort && ./build.sh",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "focus": true,
+                "showReuseMessage": true
+            }
+        }
+    ]
+}
