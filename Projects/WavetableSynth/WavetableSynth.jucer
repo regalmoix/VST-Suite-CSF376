@@ -6,6 +6,11 @@
               pluginAUMainType="'aufx'" cppLanguageStandard="17">
   <MAINGROUP id="krtCpC" name="WavetableSynth">
     <GROUP id="{9B63E44E-24C1-577A-D0D7-A8E8A7B39808}" name="Source">
+      <FILE id="q0anaq" name="PluginProperties.cpp" compile="1" resource="0"
+            file="Source/PluginProperties.cpp"/>
+      <FILE id="ra8LyQ" name="WaveTableOscillator.cpp" compile="1" resource="0"
+            file="Source/WaveTableOscillator.cpp"/>
+      <FILE id="gth2pr" name="SineWave.cpp" compile="1" resource="0" file="Source/SineWave.cpp"/>
       <FILE id="lSL4pW" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="u9iDO6" name="PluginProcessor.h" compile="0" resource="0"
@@ -37,7 +42,7 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../JUCE/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" enableGNUExtensions="1">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" enableGNUExtensions="1" extraCompilerFlags=" -Wno-unused-parameter ">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" binaryPath="Builds/Plugin/" recommendedWarnings="GCC"
                        linuxArchitecture="-march=native"/>
