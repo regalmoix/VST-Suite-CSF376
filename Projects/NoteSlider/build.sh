@@ -84,5 +84,14 @@ fi
 
 #echo "Running Command : "
 #echo make $buildtarget CONFIG=$buildmode -C Builds/LinuxMakefile/
-make -j8  $buildtarget CONFIG=$buildmode -C Builds/LinuxMakefile/
+
+if [[ "$buildtarget" ==  "clean" ]]
+then
+    # To clean both Debug and Release intermediate files
+    make -j8  $buildtarget CONFIG=Release -C Builds/LinuxMakefile/
+    make -j8  $buildtarget CONFIG=Debug   -C Builds/LinuxMakefile/
+
+else
+    make -j8  $buildtarget CONFIG=$buildmode -C Builds/LinuxMakefile/
+fi
 #dialog --checklist "Choose the options you want:" 0 0 0  1 cheese on 2 "Mustard" on  3 anchovies off
