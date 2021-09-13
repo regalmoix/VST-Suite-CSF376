@@ -14,6 +14,25 @@
 #define OSC_CNT 3
 #define TABLESIZE 44100
 
+enum ADSRState
+{
+    Attack,
+    Decay,
+    Sustain,
+    Release,
+    Stopped
+};
+
+// Stores values associated with a ADSR GUI Knobs
+struct ADSRSettings
+{
+    // All durations are in terms of samples
+    uint32  attackDuration  { 0 };
+    uint32  decayDuration   { 0 };
+    float   sutainGain      { 0.0f };
+    uint32  releaseDuration { 0 };
+};
+
 class WavetableOscillator
 {
 public:
@@ -47,9 +66,11 @@ class SineWaveVoice : public juce::SynthesiserVoice
 private:
     juce::OwnedArray<WavetableOscillator> oscillators;
 
-    double  tailOff     { 0.0f };
-    double  level       { 0.0f };
-    bool    playNote    { false };
+    double          tailOff     { 0.0f };
+    double          level       { 0.0f };
+    bool            playNote    { false };
+    ADSRSettings    settings;
+    ADSRState       state;
 
 public:
     SineWaveVoice ();
@@ -111,20 +132,16 @@ public:
     void setStateInformation (const void* data, int sizeInBytes)    override;
 
     //==============================================================================
-    //void createWavetables();
-    //void initOscillators();
+    using APVTS = AudioProcessorValueTreeState;
+    static APVTS::ParameterLayout createParameterLayout();
+    APVTS  apvts { *this, nullptr, "Parameters", createParameterLayout() };
 
 private:
     //==============================================================================
     juce::Synthesiser synth;
     std::array<std::function<float(float)>, WAVETABLE_CNT> waveLambdas;
 
-
-    //juce::AudioFormatManager formatManager;
-    //juce::AudioBuffer<float> waveTables[WAVETABLE_CNT];
-    //juce::AudioBuffer<float> wavetable;
-    //juce::OwnedArray<WavetableOscillator> oscillators;
-
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessor)
 };
+
+ADSRSettings getADSRSettings (const AudioProcessorValueTreeState& apvts, const double sampleRate);

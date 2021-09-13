@@ -6,6 +6,9 @@
               pluginAUMainType="'aufx'" cppLanguageStandard="17">
   <MAINGROUP id="krtCpC" name="WavetableSynth">
     <GROUP id="{9B63E44E-24C1-577A-D0D7-A8E8A7B39808}" name="Source">
+      <FILE id="OZQeCH" name="LookNFeel.cpp" compile="1" resource="0" file="Source/LookNFeel.cpp"/>
+      <FILE id="pGMd6Y" name="ButtonsSliders.cpp" compile="1" resource="0"
+            file="Source/ButtonsSliders.cpp"/>
       <FILE id="q0anaq" name="PluginProperties.cpp" compile="1" resource="0"
             file="Source/PluginProperties.cpp"/>
       <FILE id="ra8LyQ" name="WaveTableOscillator.cpp" compile="1" resource="0"

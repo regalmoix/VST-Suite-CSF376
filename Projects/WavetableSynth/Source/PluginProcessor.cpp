@@ -110,6 +110,72 @@ void WavetableSynthAudioProcessor::setStateInformation (const void* data, int si
 
 //==============================================================================
 
+AudioProcessorValueTreeState::ParameterLayout WavetableSynthAudioProcessor::createParameterLayout()
+{
+    AudioProcessorValueTreeState::ParameterLayout layout;
+
+    float skewFactor = 0.4;
+
+    // Adding Attack Slider with appropriate range and defaults
+    layout.add(std::make_unique<juce::AudioParameterFloat>
+        (
+            "Attack",
+            "Attack",
+            juce::NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
+            10.0f
+        )
+    );
+
+    // Adding Decay Slider with appropriate range and defaults
+    layout.add(std::make_unique<juce::AudioParameterFloat>
+        (
+            "Decay",
+            "Decay",
+            juce::NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
+            10.0f
+        )
+    );
+
+    // Adding Sustain Slider with appropriate range and defaults
+    layout.add(std::make_unique<juce::AudioParameterFloat>
+        (
+            "Sustain",
+            "Sustain",
+            juce::NormalisableRange(0.0f, 1.0f, 0.1f, 1.0f),
+            0.0f
+        )
+    );
+
+    // Adding Release Slider with appropriate range and defaults
+    layout.add(std::make_unique<juce::AudioParameterFloat>
+        (
+            "Release",
+            "Release",
+            juce::NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
+            10.0f
+        )
+    );
+
+    return layout;
+}
+
+ADSRSettings getADSRSettings (const AudioProcessorValueTreeState& apvts, const double sampleRate)
+{
+    //   1 msec  : (r / 1000)     samples
+    //   x msec  : x * (r / 1000) samples
+
+    ADSRSettings settings;
+    const double samplesPerMilliSecond = sampleRate / 1000.0;
+
+    settings.attackDuration     = apvts.getRawParameterValue("Attack") ->load() * samplesPerMilliSecond;
+    settings.decayDuration      = apvts.getRawParameterValue("Decay")  ->load() * samplesPerMilliSecond;
+    settings.sutainGain         = apvts.getRawParameterValue("Sustain")->load();
+    settings.releaseDuration    = apvts.getRawParameterValue("Release")->load() * samplesPerMilliSecond;
+
+    return settings;
+}
+
+//==============================================================================
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new WavetableSynthAudioProcessor();
