@@ -25,9 +25,9 @@ RotarySlider::RotarySlider (RangedAudioParameter& param, const String& unitSuffi
           parameter     (&param),
           unit          (unitSuffix)
 {
-    // @TODO: Customise pop up : https://forum.juce.com/t/slider-setpopupdisplayenabled-popup-position/12611
+    /** @TODO: Customise pop up : https://forum.juce.com/t/slider-setpopupdisplayenabled-popup-position/12611 */
     setPopupDisplayEnabled(true, true, getParentComponent());
-    // @TODO: Possible to use velocity sensitive dragging
+    /** @TODO: Possible to use velocity sensitive dragging */
     setLookAndFeel(&lnf);
 }
 
@@ -84,7 +84,7 @@ void RotarySlider::paint(Graphics& g)
                                 *this
                             );
     }
-    // @TODO: Switch to constexpr if, when we finalize to show the label or not at compile time
+    /** @TODO: Switch to constexpr if, when we finalize to show the label or not at compile time */
     if (showMinMaxLabels)
         drawMinMaxLabels(g, startAngle, endAngle);
 }

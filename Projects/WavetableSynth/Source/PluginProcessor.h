@@ -36,17 +36,21 @@ struct ADSRSettings
 class WavetableOscillator
 {
 public:
+    /**
+     * @brief Construct a new Wavetable Oscillator object
+     * @remark Can we not pass a const AudioSampleBuffer& ?
+     */
     WavetableOscillator(AudioSampleBuffer);
 
     void    setCurrentSampleRate (float sampleRate);
     void    init ();
     void    setFrequency (float frequency);
     float   getNextSample () noexcept;
-    void    changeWavetable (AudioSampleBuffer& newWavetableToUse);
+    void    changeWavetable (const AudioSampleBuffer& newWavetableToUse);
     
 private:
     AudioSampleBuffer   wavetable;
-    const int           tableSize;
+    int                 tableSize;
     float               currentIndex    { 0.0f };
     float               tableDelta      { 0.0f };
     float               currentSampleRate;
@@ -61,6 +65,10 @@ public:
     bool    appliesToChannel (int midiChannel) override;
 };
 
+/**
+ * @brief Voice that can be used by the Synth. Use multiple voices for polyphony
+ * @link https://docs.juce.com/master/tutorial_wavetable_synth.html @endlink
+ */
 class SineWaveVoice : public juce::SynthesiserVoice 
 {
 private:
@@ -71,7 +79,8 @@ private:
     bool            playNote    { false };
     ADSRSettings    settings;
     ADSRState       state;
-
+    /** @TODO: assign this class to listen to changes in ADSR envelope */
+    
 public:
     SineWaveVoice ();
 

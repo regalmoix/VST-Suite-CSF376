@@ -27,6 +27,13 @@ void WavetableOscillator::setCurrentSampleRate(float sampleRate)
     currentSampleRate = sampleRate;
 }
 
+/**
+ * @brief Sets oscillator frequency by modifying tableDelta 
+ * @details for delta d = 1, we process r samples per sec = r / T cycles per second [r = sampleRate, T = tableSize]
+ *          so  for   d = f * T / r, we process f cycles per second giving f Hz sound
+ * 
+ * @param frequency 
+ */
 void WavetableOscillator::setFrequency(float frequency)
 {
     const float tableSizeOverSampleRate = (float) tableSize / currentSampleRate;
@@ -34,8 +41,9 @@ void WavetableOscillator::setFrequency(float frequency)
 }
 
 /**
- * Gets the next sample from the table and increments the currentIndex.
-*/
+ * @brief Gets the next sample from the table and increments the currentIndex.
+ * @return the sample needed
+ */
 float WavetableOscillator::getNextSample() noexcept
 {
     const float* table  = wavetable.getReadPointer(0);
@@ -61,7 +69,7 @@ float WavetableOscillator::getNextSample() noexcept
 }
 
 /**
- * Updates the current index, wrapping around the table.
+ * @brief Update the current index, wrapping around the table.
  */
 void WavetableOscillator::updateIndex()
 {
@@ -71,14 +79,17 @@ void WavetableOscillator::updateIndex()
         currentIndex -= (float)tableSize; 
 }
 
-void WavetableOscillator::changeWavetable(juce::AudioSampleBuffer& newWavetableToUse) {
-    
-    wavetable.setSize(1, tableSize, false, true, true);
-    auto sampleSrc = newWavetableToUse.getReadPointer(0);
-    auto sampleDst = wavetable.getWritePointer(0);
-    for (int i = 0; i < tableSize - 1; i++) {
-        sampleDst[i] = sampleSrc[i];
-    }
+void WavetableOscillator::changeWavetable(const juce::AudioSampleBuffer& newWavetableToUse) 
+{
+    /**
+     *  change table size to new tablesize
+     *  Divide by the original tableSize, set the new tablesize and multiply by it
+     */
+    tableDelta /= tableSize;
+    tableSize   = newWavetableToUse.getNumSamples() - 1;
+    tableDelta *= tableSize;
 
-    sampleDst[tableSize-1] = sampleDst[0];
+    wavetable = newWavetableToUse;
+    // Set the last sample to be same as the 0th sample to ensure "continuity"
+    wavetable.setSample(0, tableSize, wavetable.getSample(0, 0));
 }

@@ -24,7 +24,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
         sustainAttachment   (p.apvts, "Sustain", sustainKnob),
         releaseAttachment   (p.apvts, "Release", releaseKnob)
 {
-    // @TODO: If possible, send this code to Slider constructor, adding labels by getting max and min value
+    /** @TODO: If possible, send this code to Slider constructor, adding labels by getting max and min value */
     attackKnob.labels.add({ "0ms", 0.0f });
     attackKnob.labels.add({ "10s", 1.0f});
 

@@ -39,6 +39,7 @@ SineWaveVoice::~SineWaveVoice()
 void SineWaveVoice::initOscillators() 
 {
     juce::AudioBuffer<float> wavetable;
+    // To accomodate for inclusive range [0, 2pi] we need 1 + Tablesize
     wavetable.setSize(1, TABLESIZE + 1);
     wavetable.clear();
 
@@ -47,15 +48,17 @@ void SineWaveVoice::initOscillators()
     auto angleDelta = juce::MathConstants<float>::twoPi / (float)(TABLESIZE);
     auto currentAngle = 0.0;
 
-    for (unsigned int i = 0; i < TABLESIZE; ++i)
-    {
+    // Starts at angle = 0, ends at angle = 2*pi
+    for (unsigned int i = 0; i <= TABLESIZE; ++i)
+    {   
+        /** @todo : replace std::sin with a function parameter to init oscillator */
         samples[i] = (float)std::sin(currentAngle);
         currentAngle += angleDelta;
         if (currentAngle > juce::MathConstants<float>::twoPi)
             currentAngle -= juce::MathConstants<float>::twoPi;
     }
-    samples[TABLESIZE] = samples[0];
 
+    /** @brief To give user slider control of the harmonics to play, assign 1 wavetable to 1 oscillator */
     oscillators.add(new WavetableOscillator(wavetable));
 }
 
@@ -101,20 +104,21 @@ void SineWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int s
             double currentSample    = oscillator->getNextSample() * level * (tailOff > 0.0 ? tailOff : 1.0);
 
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
-                outputBuffer.addSample(channel, sampleNumber, currentSample);
+                outputBuffer.addSample(channel, sampleNumber, currentSample);            
+        }
 
-            // If tailoff is 0 => Note is playing in normal mode.
-            // If tailoff != 0 => Note is stopped and now we are in tailoff mode
-            // We keep decreasing gain by factor of 0.99 every block, and cut off the volumne when level falls below  0.5%
-            if (tailOff > 0.0) 
-            {   
-                tailOff *= 0.99;
-                if (tailOff <= 0.005) 
-                {
-                    clearCurrentNote();
-                    playNote = false;
-                    break;
-                }
+        // If tailoff is 0 => Note is playing in normal mode.
+        // If tailoff != 0 => Note is stopped and now we are in tailoff mode
+        // We keep decreasing gain by factor of 0.99 every sample, and cut off the volumne when level falls below  0.5%
+
+        if (tailOff > 0.0) 
+        {   
+            tailOff *= 0.99;
+            if (tailOff <= 0.005) 
+            {
+                clearCurrentNote();
+                playNote = false;
+                break;
             }
         }
     }
