@@ -22,16 +22,30 @@ bool SineWaveSound::appliesToChannel(int midiChannel)
 
 // ============================================================================== //
 
-SineWaveVoice::SineWaveVoice() 
+SineWaveVoice::SineWaveVoice(const WavetableSynthAudioProcessor& p) : processor(p)
 {
+    // Register as a listener
+    auto& parameters = processor.getParameters();
+
+    for (auto& param : parameters)
+        param->addListener(this);
+    
+    // Initial call to update ADSR when plugin started
+    updateADSRSettings();
+    startTimerHz(60);
+
     initOscillators();
 }
 
 SineWaveVoice::~SineWaveVoice() 
 {
-    /*
-        Do Nothing
-    */
+    // De register as the listener
+    auto& parameters = processor.getParameters();
+    
+    for (auto& param : parameters)
+        param->removeListener(this);
+    
+    stopTimer();
 }
 
 // ============================================================================== //
@@ -64,10 +78,10 @@ void SineWaveVoice::initOscillators()
 
 void SineWaveVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound*, int currentPitchWheelPosition)
 {
-    level       = velocity * 0.15;
-    tailOff     = 0.0;
-    playNote    = true;
-
+    level           = velocity * 0.15;
+    adsrState       = ADSRState::Attack;
+    envelopeIndex   = 0;
+    
     float sampleRate    = getSampleRate();
     float oscFrequency  = MidiMessage::getMidiNoteInHertz(midiNoteNumber);
 
@@ -81,45 +95,40 @@ void SineWaveVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesi
 
 void SineWaveVoice::stopNote(float velocity, bool allowTailOff)
 {
-    if (allowTailOff && tailOff == 0.0)
-        tailOff = 1.0;
+    if (allowTailOff && adsrState != ADSRState::Release)
+        adsrState = ADSRState::Release;
     
     else
     {
         clearCurrentNote();
-        playNote = false;
+        adsrState = ADSRState::Stopped;
     }
+
+    envelopeIndex = 0;
 }
 
 void SineWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples) 
 {
-    if (!playNote)
-        return;
-
-    // If the note is being played.
     for (int sampleNumber = startSample; sampleNumber < startSample + numSamples; sampleNumber++) 
     {
+        // If the note is being played.
+        if (adsrState == ADSRState::Stopped)
+            return;
+
         for (WavetableOscillator* oscillator : oscillators) 
         {
-            double currentSample    = oscillator->getNextSample() * level * (tailOff > 0.0 ? tailOff : 1.0);
-
+            double currentSample    = oscillator->getNextSample() * level * getEnvelopeGainMultiplier();
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
                 outputBuffer.addSample(channel, sampleNumber, currentSample);            
         }
 
-        // If tailoff is 0 => Note is playing in normal mode.
-        // If tailoff != 0 => Note is stopped and now we are in tailoff mode
-        // We keep decreasing gain by factor of 0.99 every sample, and cut off the volumne when level falls below  0.5%
+        if (adsrState != ADSRState::Sustain)
+        {
+            envelopeIndex++;
 
-        if (tailOff > 0.0) 
-        {   
-            tailOff *= 0.99;
-            if (tailOff <= 0.005) 
-            {
-                clearCurrentNote();
-                playNote = false;
-                break;
-            }
+            /** @brief check if index update causes a ADSR phase change */
+            if (envelopeIndex > envelopeGainMultipliers[adsrState].size())
+                changeADSRPhase();       
         }
     }
 }
@@ -141,4 +150,102 @@ void SineWaveVoice::controllerMoved (int, int)
     /*
         Do Nothing
     */
+}
+
+void SineWaveVoice::parameterGestureChanged (int parameterIndex, bool gestureIsStarting) 
+{ 
+    /*
+        Do Nothing
+    */ 
+}
+
+void SineWaveVoice::parameterValueChanged(int parameterIndex, float newValue)
+{
+    paramsChanged.set(true);
+}
+
+void SineWaveVoice::timerCallback()
+{
+    if (paramsChanged.compareAndSetBool(false, true))
+    {
+        DBG("Params Changed");
+        updateADSRSettings();
+    }
+}
+
+void SineWaveVoice::updateADSRSettings()
+{
+    const double sampleRate         = processor.getSampleRate();
+    ADSRSettings envelope           = getADSRSettings(processor.apvts, sampleRate);
+    
+    setEnvelopeGainMultiplier(envelope);
+}
+
+void SineWaveVoice::setEnvelopeGainMultiplier(const ADSRSettings& envelope)
+{
+    envelopeGainMultipliers[ADSRState::Attack] .clear();
+    envelopeGainMultipliers[ADSRState::Decay]  .clear();
+    envelopeGainMultipliers[ADSRState::Sustain].clear();
+    envelopeGainMultipliers[ADSRState::Release].clear();
+
+    for (uint32 smpl = 0; smpl < envelope.attackDuration; smpl++)
+    {
+        envelopeGainMultipliers[ADSRState::Attack].add (jmap<double>(smpl, 0, envelope.attackDuration - 1, 0, 1));   
+    }
+
+    for (uint32 smpl = 0; smpl < envelope.decayDuration; smpl++)
+    {
+        envelopeGainMultipliers[ADSRState::Decay].add (jmap<double>(smpl, 0, envelope.decayDuration - 1, 1, envelope.sutainGain));   
+    }
+
+    envelopeGainMultipliers[ADSRState::Sustain].add (envelope.sutainGain);
+
+    for (uint32 smpl = 0; smpl < envelope.releaseDuration; smpl++)
+    {
+        envelopeGainMultipliers[ADSRState::Release].add (jmap<double>(smpl, 0, envelope.releaseDuration - 1, envelope.sutainGain, 0));   
+    }
+}
+
+double SineWaveVoice::getEnvelopeGainMultiplier() const
+{
+    return std::max(envelopeGainMultipliers[adsrState][envelopeIndex], 0.0);
+}
+
+void SineWaveVoice::changeADSRPhase()
+{
+    envelopeIndex = 0;
+
+    switch (adsrState)
+    {
+        case ADSRState::Attack : 
+        {
+            adsrState = ADSRState::Decay; 
+            break;
+        }
+
+        case ADSRState::Decay : 
+        {
+            adsrState = ADSRState::Sustain; 
+            break;
+        }
+
+        case ADSRState::Sustain : 
+        {
+            adsrState = ADSRState::Release; 
+            break;
+        }
+
+        case ADSRState::Release : 
+        {
+            adsrState = ADSRState::Stopped; 
+            clearCurrentNote();
+            break;
+        }
+
+        case ADSRState::Stopped : 
+        {
+            adsrState = ADSRState::Attack; 
+            break;
+        }
+    }
 }

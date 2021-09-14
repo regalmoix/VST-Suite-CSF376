@@ -70,7 +70,7 @@ WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
     };
 
     for (auto i = 0; i < 10; ++i)
-        synth.addVoice(new SineWaveVoice());
+        synth.addVoice(new SineWaveVoice(*this));
 
     synth.addSound(new SineWaveSound());
 }
