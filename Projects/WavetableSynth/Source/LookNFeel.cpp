@@ -13,12 +13,12 @@
 
 
 void LookNFeel::drawKnob (   
-                            juce::Graphics& g,
+                            Graphics& g,
                             int x, int y, int width, int height,
                             float sliderPosProportional,
                             float rotaryStartAngle,
                             float rotaryEndAngle,
-                            juce::Slider& slider
+                            Slider& slider
                         )
 {
     setColour (Slider::thumbColourId, Colours::red);

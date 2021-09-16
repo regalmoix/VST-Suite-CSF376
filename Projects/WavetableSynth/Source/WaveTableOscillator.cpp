@@ -10,7 +10,7 @@
 
 #include "PluginProcessor.h"
 
-WavetableOscillator::WavetableOscillator(juce::AudioSampleBuffer wavetableToUse)
+WavetableOscillator::WavetableOscillator(AudioSampleBuffer wavetableToUse)
     :   wavetable (wavetableToUse),
         tableSize (wavetableToUse.getNumSamples() - 1)
 {
@@ -79,7 +79,7 @@ void WavetableOscillator::updateIndex()
         currentIndex -= (float)tableSize; 
 }
 
-void WavetableOscillator::changeWavetable(const juce::AudioSampleBuffer& newWavetableToUse) 
+void WavetableOscillator::changeWavetable(const AudioSampleBuffer& newWavetableToUse) 
 {
     /**
      *  change table size to new tablesize

@@ -14,9 +14,9 @@ WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
                       #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                       .withOutput ("Output", AudioChannelSet::stereo(), true)
                      #endif
                        )
 #endif
@@ -24,46 +24,46 @@ WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
     waveLambdas =
     {
         // Sine Wave
-        [] (float x)
+        [] (double x)
         {
             return std::sin(x);
         },                                
         
         // Square Wave
-        [] (float x)
+        [] (double x)
         {
-            return x < juce::MathConstants<float>::pi ? 0 : 1; 
+            return x < MathConstants<float>::pi ? 0 : 1; 
         }, 
 
         // Triangle Wave
-        [] (float x) 
+        [] (double x) 
         { 
-            float  halfPi       = 1.0f * MathConstants<float>::halfPi;
+            float  halfPi       = 1.0 * MathConstants<float>::halfPi;
             int    normX        = (int) (x / halfPi);
 
             switch (normX)
             {
-                case 0 :    return -x / halfPi + 0.0f;
+                case 0 :    return -x / halfPi + 0.0;
 
-                case 1 :    return +x / halfPi - 2.0f;
-                case 2 :    return +x / halfPi - 2.0f;
+                case 1 :    return +x / halfPi - 2.0;
+                case 2 :    return +x / halfPi - 2.0;
 
-                case 3 :    return -x / halfPi + 4.0f;
+                case 3 :    return -x / halfPi + 4.0;
 
-                default:    return 0.0f;
+                default:    return 0.0;
             }      
 
-            return 0.0f;             
+            return 0.0;             
         },
         
         // Saw Wave
-        [] (float x) 
+        [] (double x) 
         { 
             return x / MathConstants<float>::pi - 1; 
         },
 
         // Silence
-        [] (float x) 
+        [] (double x) 
         { 
             return 0; 
         }
@@ -90,12 +90,12 @@ void WavetableSynthAudioProcessor::releaseResources()
     // spare memory, etc.
 }
 
-void WavetableSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void WavetableSynthAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     synth.renderNextBlock( buffer, midiMessages, 0, buffer.getNumSamples() );
 }
 
-void WavetableSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void WavetableSynthAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
@@ -117,46 +117,63 @@ AudioProcessorValueTreeState::ParameterLayout WavetableSynthAudioProcessor::crea
     float skewFactor = 0.4;
 
     // Adding Attack Slider with appropriate range and defaults
-    layout.add(std::make_unique<juce::AudioParameterFloat>
+    layout.add(std::make_unique<AudioParameterFloat>
         (
             "Attack",
             "Attack",
-            juce::NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
+            NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
             10.0f
         )
     );
 
     // Adding Decay Slider with appropriate range and defaults
-    layout.add(std::make_unique<juce::AudioParameterFloat>
+    layout.add(std::make_unique<AudioParameterFloat>
         (
             "Decay",
             "Decay",
-            juce::NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
+            NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
             10.0f
         )
     );
 
     // Adding Sustain Slider with appropriate range and defaults
-    layout.add(std::make_unique<juce::AudioParameterFloat>
+    layout.add(std::make_unique<AudioParameterFloat>
         (
             "Sustain",
             "Sustain",
-            juce::NormalisableRange(0.0f, 1.0f, 0.1f, 1.0f),
+            NormalisableRange(0.0f, 1.0f, 0.1f, 1.0f),
             0.0f
         )
     );
 
     // Adding Release Slider with appropriate range and defaults
-    layout.add(std::make_unique<juce::AudioParameterFloat>
+    layout.add(std::make_unique<AudioParameterFloat>
         (
             "Release",
             "Release",
-            juce::NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
+            NormalisableRange(0.0f, 10000.0f, 5.0f, skewFactor),
             10.0f
+        )
+    );
+    StringArray wavetableChoices = {"Sine Wave", "Square Wave", "Triangle Wave", "Saw Wave", "Silence"};
+
+    layout.add(std::make_unique<AudioParameterChoice>
+        (
+            "WaveTable Choice",
+            "WaveTable Choice",
+            wavetableChoices,
+            0
         )
     );
 
     return layout;
+}
+
+std::function<double(double)> WavetableSynthAudioProcessor::getWaveFunction() const
+{  
+    int waveIndex = apvts.getRawParameterValue("WaveTable Choice")->load();
+    DBG(waveIndex);
+    return waveLambdas[waveIndex];
 }
 
 ADSRSettings getADSRSettings (const AudioProcessorValueTreeState& apvts, const double sampleRate)
@@ -176,7 +193,7 @@ ADSRSettings getADSRSettings (const AudioProcessorValueTreeState& apvts, const d
 }
 
 //==============================================================================
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new WavetableSynthAudioProcessor();
 }

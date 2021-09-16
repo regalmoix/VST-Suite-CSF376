@@ -82,11 +82,13 @@ private:
     RotarySlider                    decayKnob;
     RotarySlider                    sustainKnob;
     RotarySlider                    releaseKnob;
+    ComboBox                        wavetableChoice;
 
     APVTS::SliderAttachment         attackAttachment;
     APVTS::SliderAttachment         decayAttachment;
     APVTS::SliderAttachment         sustainAttachment;
     APVTS::SliderAttachment         releaseAttachment;
+    APVTS::ComboBoxAttachment       wavetableAttachment;
     
     std::vector<Component*>         getComponents();
 

@@ -59,7 +59,7 @@ private:
     void    updateIndex();
 };
 
-class SineWaveSound : public juce::SynthesiserSound 
+class SineWaveSound : public SynthesiserSound 
 {
 public:
     bool    appliesToNote (int midiNoteNumber) override;
@@ -75,7 +75,7 @@ class SineWaveVoice :   public SynthesiserVoice,
                         public Timer
 {
 private:
-    juce::OwnedArray<WavetableOscillator>   oscillators;
+    OwnedArray<WavetableOscillator>         oscillators;
     const WavetableSynthAudioProcessor&     processor;
 
     double          level           { 0.0f };
@@ -90,11 +90,11 @@ public:
 
     ~SineWaveVoice();
 
-    void initOscillators();
+    void initOscillators(std::function<double(double)> wave);
 
-    bool canPlaySound(juce::SynthesiserSound* sound) override;
+    bool canPlaySound(SynthesiserSound* sound) override;
 
-    void startNote (int midiNoteNumber, float velocity, juce::SynthesiserSound*, int currentPitchWheelPosition) override;
+    void startNote (int midiNoteNumber, float velocity, SynthesiserSound*, int currentPitchWheelPosition) override;
     void stopNote  (float velocity, bool allowTailOff) override;
 
     void pitchWheelMoved (int newPitchWheelValue) override;
@@ -111,7 +111,7 @@ public:
         If the sound that the voice is playing finishes during the course of this rendered
         block, it must call clearCurrentNote(), to tell the synthesiser that it has finished.
     */
-    void renderNextBlock (juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples) override;
+    void renderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples) override;
 
 private:
 
@@ -139,7 +139,7 @@ private:
      * 
      * @param newEnvelope The new ADSR values
      */
-    void   setEnvelopeGainMultiplier(const ADSRSettings& newEnvelope);
+    void setEnvelopeGainMultiplier(const ADSRSettings& newEnvelope);
     
     /**
      * @brief Get the Envelope Gain Multiplier according to the current phase (A/D/S/R) and the position in the phase
@@ -147,9 +147,17 @@ private:
      * @return Gain Multiplier
      */
     double getEnvelopeGainMultiplier() const;
+
+    /**
+     * @brief Makes an AudioBuffer to hold the wavetable
+     * 
+     * @param waveFunction 
+     * @return waveTable 
+     */
+    AudioSampleBuffer makeWaveTable(std::function<double(double)> waveFunction) const;
 };
 
-class WavetableSynthAudioProcessor  : public juce::AudioProcessor
+class WavetableSynthAudioProcessor  : public AudioProcessor
 {
 public:
     //==============================================================================
@@ -166,7 +174,7 @@ public:
 #endif
 
     //==============================================================================
-    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
 
     //==============================================================================
     AudioProcessorEditor* createEditor()    override;
@@ -187,7 +195,7 @@ public:
     void    changeProgramName (int index, const String& newName) override;
 
     //==============================================================================
-    void getStateInformation (juce::MemoryBlock& destData)          override;
+    void getStateInformation (MemoryBlock& destData)                override;
     void setStateInformation (const void* data, int sizeInBytes)    override;
 
     //==============================================================================
@@ -195,10 +203,13 @@ public:
     static APVTS::ParameterLayout createParameterLayout();
     APVTS  apvts { *this, nullptr, "Parameters", createParameterLayout() };
 
+    //==============================================================================
+    std::function<double(double)> getWaveFunction() const;
+
 private:
     //==============================================================================
-    juce::Synthesiser synth;
-    std::array<std::function<float(float)>, WAVETABLE_CNT> waveLambdas;
+    Synthesiser synth;
+    std::array<std::function<double(double)>, WAVETABLE_CNT> waveLambdas;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessor)
 };

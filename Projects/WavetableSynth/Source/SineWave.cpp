@@ -34,7 +34,7 @@ SineWaveVoice::SineWaveVoice(const WavetableSynthAudioProcessor& p) : processor(
     updateADSRSettings();
     startTimerHz(60);
 
-    initOscillators();
+    initOscillators(processor.getWaveFunction());
 }
 
 SineWaveVoice::~SineWaveVoice() 
@@ -49,34 +49,39 @@ SineWaveVoice::~SineWaveVoice()
 }
 
 // ============================================================================== //
-
-void SineWaveVoice::initOscillators() 
+AudioSampleBuffer SineWaveVoice::makeWaveTable(std::function<double(double)> waveFunction) const
 {
-    juce::AudioBuffer<float> wavetable;
+    AudioSampleBuffer wavetable;
     // To accomodate for inclusive range [0, 2pi] we need 1 + Tablesize
     wavetable.setSize(1, TABLESIZE + 1);
     wavetable.clear();
 
     auto* samples = wavetable.getWritePointer(0);
 
-    auto angleDelta = juce::MathConstants<float>::twoPi / (float)(TABLESIZE);
+    auto angleDelta = MathConstants<float>::twoPi / (float)(TABLESIZE);
     auto currentAngle = 0.0;
 
     // Starts at angle = 0, ends at angle = 2*pi
     for (unsigned int i = 0; i <= TABLESIZE; ++i)
     {   
         /** @todo : replace std::sin with a function parameter to init oscillator */
-        samples[i] = (float)std::sin(currentAngle);
+        samples[i] = (float) waveFunction(currentAngle);
         currentAngle += angleDelta;
-        if (currentAngle > juce::MathConstants<float>::twoPi)
-            currentAngle -= juce::MathConstants<float>::twoPi;
+        if (currentAngle > MathConstants<float>::twoPi)
+            currentAngle -= MathConstants<float>::twoPi;
     }
+    
+    return wavetable;
+}
 
+void SineWaveVoice::initOscillators(std::function<double(double)> waveFunction) 
+{
+    AudioSampleBuffer wavetable = makeWaveTable(waveFunction);
     /** @brief To give user slider control of the harmonics to play, assign 1 wavetable to 1 oscillator */
     oscillators.add(new WavetableOscillator(wavetable));
 }
 
-void SineWaveVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound*, int currentPitchWheelPosition)
+void SineWaveVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound*, int currentPitchWheelPosition)
 {
     level           = velocity * 0.15;
     adsrState       = ADSRState::Attack;
@@ -107,7 +112,7 @@ void SineWaveVoice::stopNote(float velocity, bool allowTailOff)
     envelopeIndex = 0;
 }
 
-void SineWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int startSample, int numSamples) 
+void SineWaveVoice::renderNextBlock(AudioSampleBuffer& outputBuffer, int startSample, int numSamples) 
 {
     for (int sampleNumber = startSample; sampleNumber < startSample + numSamples; sampleNumber++) 
     {
@@ -133,7 +138,7 @@ void SineWaveVoice::renderNextBlock(juce::AudioSampleBuffer& outputBuffer, int s
     }
 }
 
-bool SineWaveVoice::canPlaySound(juce::SynthesiserSound* sound)
+bool SineWaveVoice::canPlaySound(SynthesiserSound* sound)
 {
     return dynamic_cast<SineWaveSound*> (sound) != nullptr;
 }
@@ -161,6 +166,7 @@ void SineWaveVoice::parameterGestureChanged (int parameterIndex, bool gestureIsS
 
 void SineWaveVoice::parameterValueChanged(int parameterIndex, float newValue)
 {
+    /** @todo : Separate param change bools for change of Wavetable choice, change of ADSR */
     paramsChanged.set(true);
 }
 
@@ -168,8 +174,12 @@ void SineWaveVoice::timerCallback()
 {
     if (paramsChanged.compareAndSetBool(false, true))
     {
-        DBG("Params Changed");
         updateADSRSettings();
+
+        AudioSampleBuffer wavetable  = makeWaveTable(processor.getWaveFunction());
+
+        for (WavetableOscillator* osc : oscillators)
+            osc->changeWavetable(wavetable);
     }
 }
 
