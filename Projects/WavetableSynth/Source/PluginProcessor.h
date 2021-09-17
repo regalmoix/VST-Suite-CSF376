@@ -78,10 +78,11 @@ private:
     OwnedArray<WavetableOscillator>         oscillators;
     const WavetableSynthAudioProcessor&     processor;
 
-    double          level           { 0.0f };
-    ADSRState       adsrState       { ADSRState::Stopped };
-    uint32          envelopeIndex   { 0 };                  // Sample Index used to query the envelope gain multiplier 
-    Atomic<bool>    paramsChanged   { false };
+    double          level               { 0.0f };
+    ADSRState       adsrState           { ADSRState::Stopped };
+    uint32          envelopeIndex       { 0 };                  // Sample Index used to query the envelope gain multiplier 
+    Atomic<bool>    adsrParamsChanged   { false };
+    Atomic<bool>    wavetableChanged    { false };
 
     Array <double>  envelopeGainMultipliers[4];
     

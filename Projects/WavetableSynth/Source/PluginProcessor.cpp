@@ -116,6 +116,18 @@ AudioProcessorValueTreeState::ParameterLayout WavetableSynthAudioProcessor::crea
 
     float skewFactor = 0.4;
 
+    // Adding Wavetable choice menu to select wave
+    StringArray wavetableChoices = {"Sine Wave", "Square Wave", "Triangle Wave", "Saw Wave", "Silence"};
+
+    layout.add(std::make_unique<AudioParameterChoice>
+        (
+            "WaveTable Choice",
+            "WaveTable Choice",
+            wavetableChoices,
+            0
+        )
+    );
+
     // Adding Attack Slider with appropriate range and defaults
     layout.add(std::make_unique<AudioParameterFloat>
         (
@@ -155,16 +167,6 @@ AudioProcessorValueTreeState::ParameterLayout WavetableSynthAudioProcessor::crea
             10.0f
         )
     );
-    StringArray wavetableChoices = {"Sine Wave", "Square Wave", "Triangle Wave", "Saw Wave", "Silence"};
-
-    layout.add(std::make_unique<AudioParameterChoice>
-        (
-            "WaveTable Choice",
-            "WaveTable Choice",
-            wavetableChoices,
-            0
-        )
-    );
 
     return layout;
 }
@@ -172,7 +174,6 @@ AudioProcessorValueTreeState::ParameterLayout WavetableSynthAudioProcessor::crea
 std::function<double(double)> WavetableSynthAudioProcessor::getWaveFunction() const
 {  
     int waveIndex = apvts.getRawParameterValue("WaveTable Choice")->load();
-    DBG(waveIndex);
     return waveLambdas[waveIndex];
 }
 

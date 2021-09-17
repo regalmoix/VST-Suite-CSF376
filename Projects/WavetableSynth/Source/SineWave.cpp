@@ -64,7 +64,6 @@ AudioSampleBuffer SineWaveVoice::makeWaveTable(std::function<double(double)> wav
     // Starts at angle = 0, ends at angle = 2*pi
     for (unsigned int i = 0; i <= TABLESIZE; ++i)
     {   
-        /** @todo : replace std::sin with a function parameter to init oscillator */
         samples[i] = (float) waveFunction(currentAngle);
         currentAngle += angleDelta;
         if (currentAngle > MathConstants<float>::twoPi)
@@ -166,16 +165,20 @@ void SineWaveVoice::parameterGestureChanged (int parameterIndex, bool gestureIsS
 
 void SineWaveVoice::parameterValueChanged(int parameterIndex, float newValue)
 {
-    /** @todo : Separate param change bools for change of Wavetable choice, change of ADSR */
-    paramsChanged.set(true);
+    /** @note : parameterIndex = 0 for wavetable choice menu */
+    if (parameterIndex != 0)
+        adsrParamsChanged.set(true);
+    else
+        wavetableChanged.set(true);
 }
 
 void SineWaveVoice::timerCallback()
 {
-    if (paramsChanged.compareAndSetBool(false, true))
-    {
+    if (adsrParamsChanged.compareAndSetBool(false, true))
         updateADSRSettings();
 
+    if (wavetableChanged.compareAndSetBool(false, true))
+    {
         AudioSampleBuffer wavetable  = makeWaveTable(processor.getWaveFunction());
 
         for (WavetableOscillator* osc : oscillators)
