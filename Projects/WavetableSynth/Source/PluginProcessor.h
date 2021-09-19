@@ -114,6 +114,11 @@ public:
     */
     void renderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples) override;
 
+    /**
+     * @brief forces an update of the ADSR Settings and the Wavetable Choice.
+     */
+    void forceRefresh    ();
+
 private:
 
     /** 

@@ -262,3 +262,13 @@ void SineWaveVoice::changeADSRPhase()
         }
     }
 }
+
+void SineWaveVoice::forceRefresh()
+{
+    DBG("Forced a complete refresh of ADSR and Wavetable State");
+    adsrParamsChanged.set(true);
+    wavetableChanged .set(true);
+
+    /** @brief Force updating which timer callback does. Possible "abuse" */
+    timerCallback();
+}

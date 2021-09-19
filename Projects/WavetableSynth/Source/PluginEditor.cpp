@@ -42,7 +42,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
     /** @todo  Add wave logos and customise LnF of the Menu */
     StringArray wavetableChoices = {"Sine Wave", "Square Wave", "Triangle Wave", "Saw Wave", "Silence"};
     wavetableChoice.addItemList(wavetableChoices, 1);
-    wavetableChoice.setSelectedItemIndex(0);
+    wavetableChoice.setSelectedItemIndex(p.apvts.getRawParameterValue("WaveTable Choice")->load());
     
     attackKnob .setTextValueSuffix(" ms");
     decayKnob  .setTextValueSuffix(" ms");
@@ -94,7 +94,7 @@ void WavetableSynthAudioProcessorEditor::resized()
                         FlexBox::JustifyContent::spaceBetween
                     );
 
-    auto bounds     = getLocalBounds().reduced(5);
+    auto bounds     = getLocalBounds().reduced(12);
     int diameter    = 80;
 
     for (auto& component : getComponents())
