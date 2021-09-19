@@ -13,10 +13,10 @@
 WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (WavetableSynthAudioProcessor& p)
     :   AudioProcessorEditor (&p), 
         audioProcessor (p),
-        attackKnob  (*p.apvts.getParameter("Attack"),  "ms"),
-        decayKnob   (*p.apvts.getParameter("Decay"),   "ms"),
-        sustainKnob (*p.apvts.getParameter("Sustain"), ""),
-        releaseKnob (*p.apvts.getParameter("Release"), "ms"),
+        attackKnob  (*p.apvts.getParameter("Attack"),  "ms", "Attack"),
+        decayKnob   (*p.apvts.getParameter("Decay"),   "ms", "Decay"),
+        sustainKnob (*p.apvts.getParameter("Sustain"), "",   "Sustain"),
+        releaseKnob (*p.apvts.getParameter("Release"), "ms", "Release"),
         wavetableChoice("WaveTable Choice"),
 
         attackAttachment    (p.apvts, "Attack",  attackKnob),
@@ -42,13 +42,24 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
     /** @todo  Add wave logos and customise LnF of the Menu */
     StringArray wavetableChoices = {"Sine Wave", "Square Wave", "Triangle Wave", "Saw Wave", "Silence"};
     wavetableChoice.addItemList(wavetableChoices, 1);
+    wavetableChoice.setSelectedItemIndex(0);
     
+    attackKnob .setTextValueSuffix(" ms");
+    decayKnob  .setTextValueSuffix(" ms");
+    releaseKnob.setTextValueSuffix(" ms");
+
+    /** @todo : Set Label Text Colour in LNF to reduce duplication */
+    wavetableLabel.attachToComponent(&wavetableChoice, true);
+    wavetableLabel.setText("WaveTable", dontSendNotification);
+    wavetableLabel.setColour(Label::textColourId, Colours::cyan);
+    wavetableLabel.setJustificationType(Justification::centred);
+
     for (Component* component : getComponents())
     {
         addAndMakeVisible(component);
     }
 
-    setSize (900, 300);
+    setSize (400, 150);
 }
 
 WavetableSynthAudioProcessorEditor::~WavetableSynthAudioProcessorEditor()
@@ -59,26 +70,44 @@ WavetableSynthAudioProcessorEditor::~WavetableSynthAudioProcessorEditor()
 void WavetableSynthAudioProcessorEditor::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+    g.fillAll (Colours::black);
 }
 
 void WavetableSynthAudioProcessorEditor::resized()
 {
-    // This is generally whqere you'll want to lay out the positions of any
-    // subcomponents in your editor..
-    auto bounds         = getLocalBounds();
-    auto wavetableBounds= bounds.removeFromTop (bounds.getHeight()* 0.15);
-    auto attackBounds   = bounds.removeFromLeft(bounds.getWidth() * 0.25);
-    auto decayBounds    = bounds.removeFromLeft(bounds.getWidth() * 0.33);
-    auto sustainBounds  = bounds.removeFromLeft(bounds.getWidth() * 0.50);
-    auto releaseBounds  = bounds.removeFromLeft(bounds.getWidth() * 1.00);
+    FlexBox editor;
+    editor.flexDirection = FlexBox::Direction::column;
 
-    wavetableChoice.setBounds(wavetableBounds);
+    FlexBox topMenu (   
+                        FlexBox::Direction::row, 
+                        FlexBox::Wrap::wrap, 
+                        FlexBox::AlignContent::center, 
+                        FlexBox::AlignItems::center, 
+                        FlexBox::JustifyContent::flexEnd
+                    );
 
-    attackKnob .setBounds(attackBounds);
-    decayKnob  .setBounds(decayBounds);
-    sustainKnob.setBounds(sustainBounds);
-    releaseKnob.setBounds(releaseBounds);
+    FlexBox adsrMenu(   
+                        FlexBox::Direction::row, 
+                        FlexBox::Wrap::wrap, 
+                        FlexBox::AlignContent::center, 
+                        FlexBox::AlignItems::center, 
+                        FlexBox::JustifyContent::spaceBetween
+                    );
+
+    auto bounds     = getLocalBounds().reduced(5);
+    int diameter    = 80;
+
+    for (auto& component : getComponents())
+    {
+        if (auto* knob = dynamic_cast<RotarySlider*>(component))
+            adsrMenu.items.add(FlexItem(*knob).withMinWidth(diameter).withMinHeight(diameter));
+    }
+    topMenu .items.add(FlexItem(wavetableChoice).withMinWidth(bounds.getWidth() * 0.35).withMinHeight(bounds.getHeight() * 0.20));
+
+    editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.25, topMenu ));
+    editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.75, adsrMenu));
+    
+    editor.performLayout (bounds.toFloat());
 }
 
 std::vector<Component*> WavetableSynthAudioProcessorEditor::getComponents()
@@ -88,6 +117,7 @@ std::vector<Component*> WavetableSynthAudioProcessorEditor::getComponents()
         &decayKnob,
         &sustainKnob,
         &releaseKnob,
-        &wavetableChoice
+        &wavetableChoice,
+        &wavetableLabel
     };
 }

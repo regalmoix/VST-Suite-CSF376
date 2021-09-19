@@ -38,7 +38,7 @@ class RotarySlider : public Slider
 public:
     // Delegating superclass constructor to initialise the super class members according to the below parameters
     // If we did not do this, Slider would have been default constructed
-    RotarySlider (RangedAudioParameter& param, const String& unitSuffix);
+    RotarySlider (RangedAudioParameter& param, const String& unitSuffix, const String& name);
     ~RotarySlider();
 
     Array<LabelWithPosition>    labels;
@@ -46,17 +46,18 @@ public:
     
     void    drawLabelAtPosition (Graphics& g, const LabelWithPosition& label, const Point<float>& labelCenter);
     void    drawMinMaxLabels    (Graphics& g, float startAngle, float endAngle);
+    void    drawNameLabel       (Graphics& g);
     void    paint               (Graphics& g) override;
     int     getTextHeight       () const;
-    String  getDisplayString    ()              const;
-
+    String  getDisplayString    () const;
 
     Rectangle<int> getSliderBounds  () const;
 
 private:
     LookNFeel lnf;
-    RangedAudioParameter* parameter;
-    String                unit;
+    RangedAudioParameter*   parameter;
+    String                  unit;
+    String                  sliderName;
 };
 
 //==============================================================================
@@ -89,6 +90,8 @@ private:
     APVTS::SliderAttachment         sustainAttachment;
     APVTS::SliderAttachment         releaseAttachment;
     APVTS::ComboBoxAttachment       wavetableAttachment;
+
+    Label                           wavetableLabel;
     
     std::vector<Component*>         getComponents();
 

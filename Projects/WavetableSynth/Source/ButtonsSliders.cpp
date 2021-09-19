@@ -20,10 +20,11 @@ float LabelWithPosition::getAngularPosition(const float startAngle, const float 
 
 // =============== RotarySlider Constructor / Destructor ==============================
 
-RotarySlider::RotarySlider (RangedAudioParameter& param, const String& unitSuffix) 
+RotarySlider::RotarySlider (RangedAudioParameter& param, const String& unitSuffix, const String& name) 
         : Slider  (Slider::SliderStyle::RotaryHorizontalVerticalDrag, Slider::TextEntryBoxPosition::NoTextBox),
           parameter     (&param),
-          unit          (unitSuffix)
+          unit          (unitSuffix),
+          sliderName    (name)
 {
     /** @TODO: Customise pop up : https://forum.juce.com/t/slider-setpopupdisplayenabled-popup-position/12611 */
     setPopupDisplayEnabled(true, true, getParentComponent());
@@ -66,7 +67,9 @@ String RotarySlider::getDisplayString() const
 }
 
 void RotarySlider::paint(Graphics& g)
-{
+{   
+    g.setColour(Colours::tomato);
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 20, 5);
     float startAngle= degreesToRadians(180.0f + 60.0f);
     float endAngle  = degreesToRadians(180.0f - 60.0f) + MathConstants<float>::twoPi;
 
@@ -84,6 +87,9 @@ void RotarySlider::paint(Graphics& g)
                                 *this
                             );
     }
+
+    drawNameLabel(g);
+
     /** @TODO: Switch to constexpr if, when we finalize to show the label or not at compile time */
     if (showMinMaxLabels)
         drawMinMaxLabels(g, startAngle, endAngle);
@@ -127,20 +133,31 @@ void RotarySlider::drawLabelAtPosition(Graphics& g, const LabelWithPosition& lab
     g.drawFittedText(text, labelRect.toNearestInt(), Justification::centred, 1);
 }
 
+void RotarySlider::drawNameLabel(Graphics& g)
+{
+    g.setColour(Colours::cyan);
+    g.setFont  (getTextHeight());
+
+    Rectangle<float> labelRect;
+    labelRect.setSize  (g.getCurrentFont().getStringWidth(sliderName), getTextHeight());
+    labelRect.setCentre(getSliderBounds().getCentreX(), getSliderBounds().getBottom() - getTextHeight());
+    g.drawFittedText(sliderName, labelRect.toNearestInt(), Justification::centred, 1);
+}   
+
 Rectangle<int> RotarySlider::getSliderBounds() const
 {
     auto bounds =  getLocalBounds();
 
     auto size = jmin(bounds.getWidth(), bounds.getHeight());
 
-    size -= getTextHeight() * 2;
+    // size -= getTextHeight() * 2;
 
     Rectangle<int> square;
     square.setSize(size, size);
     square.setCentre(bounds.getCentreX(), 0);
 
     // y = 0 => top of the component
-    square.setY(getTextHeight() / 2);
+    square.setY(0);
 
     return square;
 }
