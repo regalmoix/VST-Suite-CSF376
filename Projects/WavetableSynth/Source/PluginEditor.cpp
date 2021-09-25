@@ -23,7 +23,8 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
         decayAttachment     (p.apvts, "Decay",   decayKnob),
         sustainAttachment   (p.apvts, "Sustain", sustainKnob),
         releaseAttachment   (p.apvts, "Release", releaseKnob),
-        wavetableAttachment (p.apvts, "WaveTable Choice", wavetableChoice)
+        wavetableAttachment (p.apvts, "WaveTable Choice", wavetableChoice),
+        waveGraph           (p)
 {
     /** @TODO: If possible, send this code to Slider constructor, adding labels by getting max and min value */
     attackKnob.labels.add({ "0ms", 0.0f });
@@ -59,7 +60,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
         addAndMakeVisible(component);
     }
 
-    setSize (400, 150);
+    setSize (400, 200);
 }
 
 WavetableSynthAudioProcessorEditor::~WavetableSynthAudioProcessorEditor()
@@ -83,7 +84,7 @@ void WavetableSynthAudioProcessorEditor::resized()
                         FlexBox::Wrap::wrap, 
                         FlexBox::AlignContent::center, 
                         FlexBox::AlignItems::center, 
-                        FlexBox::JustifyContent::flexEnd
+                        FlexBox::JustifyContent::spaceBetween
                     );
 
     FlexBox adsrMenu(   
@@ -100,9 +101,11 @@ void WavetableSynthAudioProcessorEditor::resized()
     for (auto& component : getComponents())
     {
         if (auto* knob = dynamic_cast<RotarySlider*>(component))
-            adsrMenu.items.add(FlexItem(*knob).withMinWidth(diameter).withMinHeight(diameter));
+            adsrMenu.items.add(FlexItem(*knob)  .withMinWidth(diameter).withMinHeight(diameter));
     }
-    topMenu .items.add(FlexItem(wavetableChoice).withMinWidth(bounds.getWidth() * 0.35).withMinHeight(bounds.getHeight() * 0.20));
+
+    topMenu.items.add(FlexItem(waveGraph)       .withMinWidth(bounds.getWidth() * 0.30).withMinHeight(bounds.getHeight() * 0.20));
+    topMenu.items.add(FlexItem(wavetableChoice) .withMinWidth(bounds.getWidth() * 0.35).withMinHeight(bounds.getHeight() * 0.20));
 
     editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.25, topMenu ));
     editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.75, adsrMenu));
@@ -118,6 +121,7 @@ std::vector<Component*> WavetableSynthAudioProcessorEditor::getComponents()
         &sustainKnob,
         &releaseKnob,
         &wavetableChoice,
-        &wavetableLabel
+        &wavetableLabel,
+        &waveGraph
     };
 }

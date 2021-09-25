@@ -32,7 +32,7 @@ WavetableSynthAudioProcessor::WavetableSynthAudioProcessor()
         // Square Wave
         [] (double x)
         {
-            return x < MathConstants<float>::pi ? 0 : 1; 
+            return x < MathConstants<float>::pi ? -1 : 1; 
         }, 
 
         // Triangle Wave

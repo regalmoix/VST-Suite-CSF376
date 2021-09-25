@@ -60,6 +60,32 @@ private:
     String                  sliderName;
 };
 
+class GraphComponent :  public AudioProcessorParameter::Listener, 
+                        public Timer,
+                        public Component
+{
+private:    
+    WavetableSynthAudioProcessor&   processor;
+    Atomic<bool>                    waveChanged {false};
+    /**
+     * @brief Converts inputFunction to Array of y coordinates
+     * @return y coordinates for each x coordinate = index 
+     */
+    Array<float> updateGraph();
+
+
+public:
+    GraphComponent(WavetableSynthAudioProcessor& p);
+    ~GraphComponent();
+
+    void parameterValueChanged   (int parameterIndex, float newValue) override;
+    void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override;
+
+    void timerCallback() override;
+    void paint(Graphics&) override;
+    void resized() override;
+};
+
 //==============================================================================
 
 class WavetableSynthAudioProcessorEditor  : public AudioProcessorEditor
@@ -92,6 +118,8 @@ private:
     APVTS::ComboBoxAttachment       wavetableAttachment;
 
     Label                           wavetableLabel;
+
+    GraphComponent                  waveGraph;
     
     std::vector<Component*>         getComponents();
 
