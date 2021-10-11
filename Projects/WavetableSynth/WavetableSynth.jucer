@@ -6,6 +6,25 @@
               pluginAUMainType="'aufx'" cppLanguageStandard="17">
   <MAINGROUP id="krtCpC" name="WavetableSynth">
     <GROUP id="{9B63E44E-24C1-577A-D0D7-A8E8A7B39808}" name="Source">
+      <GROUP id="{3BB2805A-7EE7-480C-6249-FDB143C62777}" name="Envelope">
+        <FILE id="bAylWv" name="EnvelopeEditor.cpp" compile="1" resource="0"
+              file="Source/Envelope/EnvelopeEditor.cpp"/>
+        <FILE id="IEyodH" name="EnvelopeEditor.h" compile="0" resource="0"
+              file="Source/Envelope/EnvelopeEditor.h"/>
+        <FILE id="MlzRuW" name="FunctionTable.cpp" compile="1" resource="0"
+              file="Source/Envelope/FunctionTable.cpp"/>
+        <FILE id="FGvUgL" name="FunctionTable.h" compile="0" resource="0" file="Source/Envelope/FunctionTable.h"/>
+        <FILE id="QU7Ncx" name="LICENSE" compile="0" resource="1" file="Source/Envelope/LICENSE"/>
+        <FILE id="B0IhG4" name="PopupMenuSearch.cpp" compile="1" resource="0"
+              file="Source/Envelope/PopupMenuSearch.cpp"/>
+        <FILE id="Gj0FVU" name="PopupMenuSearch.h" compile="0" resource="0"
+              file="Source/Envelope/PopupMenuSearch.h"/>
+        <FILE id="nBzWNr" name="SegmentGenerator.cpp" compile="1" resource="0"
+              file="Source/Envelope/SegmentGenerator.cpp"/>
+        <FILE id="a2KKiz" name="SegmentGenerator.h" compile="0" resource="0"
+              file="Source/Envelope/SegmentGenerator.h"/>
+      </GROUP>
+      <FILE id="WdttAy" name="Envelope.cpp" compile="1" resource="0" file="Source/Envelope.cpp"/>
       <FILE id="bbPIl7" name="GraphComponent.cpp" compile="1" resource="0"
             file="Source/GraphComponent.cpp"/>
       <FILE id="OZQeCH" name="LookNFeel.cpp" compile="1" resource="0" file="Source/LookNFeel.cpp"/>

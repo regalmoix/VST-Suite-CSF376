@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "Envelope/EnvelopeEditor.h"
 
 class LookNFeel : public LookAndFeel_V4
 {
@@ -86,6 +87,12 @@ public:
     void resized() override;
 };
 
+class ADSREnvelopeEditor : public EnvelopeEditor
+{
+protected:
+    bool allowVerticalDrag() override;
+    bool allowHorizontalDrag() override;
+};
 //==============================================================================
 
 class WavetableSynthAudioProcessorEditor  : public AudioProcessorEditor
@@ -120,7 +127,7 @@ private:
     Label                           wavetableLabel;
 
     GraphComponent                  waveGraph;
-    
+    ADSREnvelopeEditor              adsrEnvelopeDraggable;
     std::vector<Component*>         getComponents();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessorEditor)

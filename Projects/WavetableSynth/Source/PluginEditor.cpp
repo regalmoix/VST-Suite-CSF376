@@ -55,12 +55,33 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
     wavetableLabel.setColour(Label::textColourId, Colours::cyan);
     wavetableLabel.setJustificationType(Justification::centred);
 
+
+    /**
+     * @brief Initialise the Draggable ADSR Envelope
+     */
+
+    adsrEnvelopeDraggable.setNewEnvelope({
+                                { 0.0f, 1.0f, 0.0f, 0.00, 0.15 }, 
+                                { 1.0f, 0.5f, 0.0f, 0.15, 0.35 }, 
+                                { 0.5f, 0.0f, 0.0f, 0.35, 0.60 },
+                                { 0.0f, 0.0f, 0.0f, 0.60, 1.00 }    // GHOST SEGMENT fixed at Bottom Edge
+                            });
+    adsrEnvelopeDraggable.setFixedControlPoints(true);
+
+    adsrEnvelopeDraggable.setLineColour(Colours::orange);
+    adsrEnvelopeDraggable.setDotColour (Colours::red);
+    adsrEnvelopeDraggable.setBackgroundColour(Colour(0xff323538));
+
+    adsrEnvelopeDraggable.setDotRadius(6);
+    adsrEnvelopeDraggable.setLineThickness(2);
+
+
     for (Component* component : getComponents())
     {
         addAndMakeVisible(component);
     }
 
-    setSize (400, 200);
+    setSize (600, 600);
 }
 
 WavetableSynthAudioProcessorEditor::~WavetableSynthAudioProcessorEditor()
@@ -94,6 +115,14 @@ void WavetableSynthAudioProcessorEditor::resized()
                         FlexBox::AlignItems::center, 
                         FlexBox::JustifyContent::spaceBetween
                     );
+    
+    FlexBox adsrEnvArea (   
+                        FlexBox::Direction::row, 
+                        FlexBox::Wrap::wrap, 
+                        FlexBox::AlignContent::center, 
+                        FlexBox::AlignItems::center, 
+                        FlexBox::JustifyContent::center
+                    );
 
     auto bounds     = getLocalBounds().reduced(12);
     int diameter    = 80;
@@ -104,11 +133,17 @@ void WavetableSynthAudioProcessorEditor::resized()
             adsrMenu.items.add(FlexItem(*knob)  .withMinWidth(diameter).withMinHeight(diameter));
     }
 
-    topMenu.items.add(FlexItem(waveGraph)       .withMinWidth(bounds.getWidth() * 0.30).withMinHeight(bounds.getHeight() * 0.20));
-    topMenu.items.add(FlexItem(wavetableChoice) .withMinWidth(bounds.getWidth() * 0.35).withMinHeight(bounds.getHeight() * 0.20));
+    topMenu.items.add(FlexItem(waveGraph)       .withMinWidth(bounds.getWidth() * 0.30).withMinHeight(bounds.getHeight() * 0.10));
+    topMenu.items.add(FlexItem(wavetableChoice) .withMinWidth(bounds.getWidth() * 0.35).withMinHeight(bounds.getHeight() * 0.10));
 
-    editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.25, topMenu ));
-    editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.75, adsrMenu));
+    adsrEnvArea.items.add(FlexItem(adsrEnvelopeDraggable)
+                            .withMinWidth(bounds.getWidth() * 0.95)
+                            .withMinHeight(bounds.getHeight() * 0.45)
+                        );
+
+    editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.1, topMenu ));
+    editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.4, adsrMenu));
+    editor.items.add(FlexItem(bounds.getWidth(), bounds.getHeight() * 0.5, adsrEnvArea));
     
     editor.performLayout (bounds.toFloat());
 }
@@ -122,6 +157,7 @@ std::vector<Component*> WavetableSynthAudioProcessorEditor::getComponents()
         &releaseKnob,
         &wavetableChoice,
         &wavetableLabel,
-        &waveGraph
+        &waveGraph,
+        &adsrEnvelopeDraggable
     };
 }
