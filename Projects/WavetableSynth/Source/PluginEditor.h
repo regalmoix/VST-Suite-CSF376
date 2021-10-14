@@ -87,11 +87,26 @@ public:
     void resized() override;
 };
 
-class ADSREnvelopeEditor : public EnvelopeEditor
+class ADSREnvelopeEditor :  public EnvelopeEditor,
+                            public AudioProcessorParameter::Listener, 
+                            public Timer
 {
+private:
+    WavetableSynthAudioProcessor&   processor;
+    Atomic<bool>                    adsrChanged {false};
+
 protected:
     bool allowVerticalDrag() override;
     bool allowHorizontalDrag() override;
+
+public:
+    ADSREnvelopeEditor(WavetableSynthAudioProcessor& p);
+    ~ADSREnvelopeEditor();
+
+    void parameterValueChanged   (int parameterIndex, float newValue) override;
+    void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override;
+    void timerCallback() override;
+
 };
 //==============================================================================
 

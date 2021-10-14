@@ -9,6 +9,86 @@
 */
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
+
+using std::vector;
+
+ADSREnvelopeEditor::ADSREnvelopeEditor(WavetableSynthAudioProcessor& p)
+    : processor(p)
+{
+    // Register as a listener
+    auto& parameters = processor.getParameters();
+    for (auto& param : parameters)
+    {
+        param->addListener(this);
+    }
+    /** @todo initial call to display response curve when plugin started */
+    // TODO
+
+    startTimerHz(60);
+}
+
+ADSREnvelopeEditor::~ADSREnvelopeEditor()
+{
+    // De register as the listener
+    auto& parameters = processor.getParameters();
+    for (auto& param : parameters)
+    {
+        param->removeListener(this);
+    }
+    stopTimer();
+}
+
+
+void ADSREnvelopeEditor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting) 
+{ 
+    /* 
+        Do Nothing.
+    */ 
+}
+
+void ADSREnvelopeEditor::parameterValueChanged(int parameterIndex, float newValue)
+{
+    /** @note : parameterIndex = 1..4 for A,D,S,R knobs */
+    if (parameterIndex >= 1 && parameterIndex <= 4)
+    {
+        adsrChanged.set(true);   
+    }
+}
+
+void ADSREnvelopeEditor::timerCallback()
+{    
+    if (adsrChanged.compareAndSetBool(false, true))
+    {
+        /** @todo : recompute the adsr envelope table and save it in some array in Processor. */
+        /** @todo : When knobs change value we redraw segments on the graph and vice versa */
+        /** @todo : Add Listener Broadcast feature, or, overload mouse drag, call baseclass mousedrag and manually update "listeners" */
+        ADSRSettings settings       = getADSRSettings(processor.apvts, processor.getSampleRate());
+        size_t totalLengthInSamples = processor.getSampleRate() * 30;       // attack, decay, release capped at 10 secs each
+        
+        // Attack, Decay and Release fractions
+        float af    = float(settings.attackDuration)  / float(totalLengthInSamples); 
+        float df    = float(settings.decayDuration)   / float(totalLengthInSamples); 
+        float rf    = float(settings.releaseDuration) / float(totalLengthInSamples); 
+
+        float s     = settings.sutainGain;
+
+        envelopeDescriptor[ADSRState::Attack].finalX    = af;
+
+        envelopeDescriptor[ADSRState::Decay].initialX   = af;
+        envelopeDescriptor[ADSRState::Decay].finalX     = af + df;
+        envelopeDescriptor[ADSRState::Decay].finalValue = s;
+
+        // Subtracted 1 since there is no "sustain" segment, hence indexing shifts by 1
+        envelopeDescriptor[ADSRState::Release - 1].initialValue = s;
+        envelopeDescriptor[ADSRState::Release - 1].initialX = af + df;
+        envelopeDescriptor[ADSRState::Release - 1].finalX   = af + df + rf;
+
+        envelopeDescriptor[ADSRState::Stopped - 1].initialX = af + df + rf;
+
+        repaint();
+    }
+}
 
 bool ADSREnvelopeEditor::allowHorizontalDrag()
 {
