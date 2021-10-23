@@ -13,8 +13,18 @@
 
 using std::vector;
 
-ADSREnvelopeEditor::ADSREnvelopeEditor(WavetableSynthAudioProcessor& p)
-    : processor(p)
+ADSREnvelopeEditor::ADSREnvelopeEditor(
+                                        WavetableSynthAudioProcessor& p, 
+                                        RotarySlider& attackKnob, 
+                                        RotarySlider& decayKnob, 
+                                        RotarySlider& sustainKnob, 
+                                        RotarySlider& releaseKnob
+                                    )
+    : processor     (p),
+      attackKnob    (attackKnob), 
+      decayKnob     (decayKnob), 
+      sustainKnob   (sustainKnob), 
+      releaseKnob   (releaseKnob)      
 {
     // Register as a listener
     auto& parameters = processor.getParameters();
@@ -57,14 +67,14 @@ void ADSREnvelopeEditor::parameterValueChanged(int parameterIndex, float newValu
 }
 
 void ADSREnvelopeEditor::timerCallback()
-{    
+{   
     if (adsrChanged.compareAndSetBool(false, true))
     {
         /** @todo : recompute the adsr envelope table and save it in some array in Processor. */
         /** @todo : When knobs change value we redraw segments on the graph and vice versa */
         /** @todo : Add Listener Broadcast feature, or, overload mouse drag, call baseclass mousedrag and manually update "listeners" */
         ADSRSettings settings       = getADSRSettings(processor.apvts, processor.getSampleRate());
-        size_t totalLengthInSamples = processor.getSampleRate() * 30;       // attack, decay, release capped at 10 secs each
+        size_t totalLengthInSamples = processor.getSampleRate() * 30;       // attack, decay, release capped at 10 secs each, so sum = 30
         
         // Attack, Decay and Release fractions
         float af    = float(settings.attackDuration)  / float(totalLengthInSamples); 
@@ -88,6 +98,30 @@ void ADSREnvelopeEditor::timerCallback()
 
         repaint();
     }
+}
+
+void ADSREnvelopeEditor::mouseDown(const MouseEvent& evt)
+{
+    EnvelopeEditor::mouseDown(evt);
+}
+void ADSREnvelopeEditor::mouseDrag(const MouseEvent& evt)
+{
+    EnvelopeEditor::mouseDrag(evt);
+
+    /** @brief 
+     * 3 segments to envelope => max norm length for any phase = 0.33
+     * multiply by 3 to scale 0.33 -> 1
+     * Note that 10000 is total length of the normalisable range, ie each duration is at max 10000 msec long
+     */
+    double attackValue  = (envelopeDescriptor[0].getNormLengthSamples() * 3) * 10000;
+    double decayValue   = (envelopeDescriptor[1].getNormLengthSamples() * 3) * 10000;
+    double sustainValue =  envelopeDescriptor[1].finalValue * 1.0;
+    double releaseValue = (envelopeDescriptor[2].getNormLengthSamples() * 3) * 10000;
+
+    attackKnob .setValue(attackValue );
+    decayKnob  .setValue(decayValue  );
+    sustainKnob.setValue(sustainValue);
+    releaseKnob.setValue(releaseValue);
 }
 
 bool ADSREnvelopeEditor::allowHorizontalDrag()

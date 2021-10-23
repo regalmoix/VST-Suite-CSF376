@@ -25,7 +25,7 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
         releaseAttachment   (p.apvts, "Release", releaseKnob),
         wavetableAttachment (p.apvts, "WaveTable Choice", wavetableChoice),
         waveGraph           (p),
-        adsrEnvelopeDraggable(p)
+        adsrEnvelopeDraggable(p, attackKnob, decayKnob, sustainKnob, releaseKnob)
 {
     /** @TODO: If possible, send this code to Slider constructor, adding labels by getting max and min value */
     attackKnob.labels.add({ "0ms", 0.0f });

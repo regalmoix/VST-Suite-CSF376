@@ -93,6 +93,10 @@ class ADSREnvelopeEditor :  public EnvelopeEditor,
 {
 private:
     WavetableSynthAudioProcessor&   processor;
+    RotarySlider&                   attackKnob; 
+    RotarySlider&                   decayKnob; 
+    RotarySlider&                   sustainKnob; 
+    RotarySlider&                   releaseKnob;
     Atomic<bool>                    adsrChanged {false};
 
 protected:
@@ -100,13 +104,21 @@ protected:
     bool allowHorizontalDrag() override;
 
 public:
-    ADSREnvelopeEditor(WavetableSynthAudioProcessor& p);
+    ADSREnvelopeEditor(
+                        WavetableSynthAudioProcessor& p, 
+                        RotarySlider& attackKnob, 
+                        RotarySlider& decayKnob, 
+                        RotarySlider& sustainKnob, 
+                        RotarySlider& releaseKnob
+                    );
     ~ADSREnvelopeEditor();
 
     void parameterValueChanged   (int parameterIndex, float newValue) override;
     void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override;
     void timerCallback() override;
-
+    
+    void mouseDown(const MouseEvent&) override;
+    void mouseDrag(const MouseEvent&) override;
 };
 //==============================================================================
 
