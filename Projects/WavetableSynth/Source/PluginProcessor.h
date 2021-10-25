@@ -31,7 +31,7 @@ struct ADSRSettings
     // All durations are in terms of samples
     uint32  attackDuration  { 0 };
     uint32  decayDuration   { 0 };
-    float   sutainGain      { 0.0f };
+    float   sustainGain     { 0.0f };
     uint32  releaseDuration { 0 };
 };
 

@@ -208,14 +208,14 @@ void SineWaveVoice::setEnvelopeGainMultiplier(const ADSRSettings& envelope)
 
     for (uint32 smpl = 0; smpl < envelope.decayDuration; smpl++)
     {
-        envelopeGainMultipliers[ADSRState::Decay].add (jmap<double>(smpl, 0, envelope.decayDuration - 1, 1, envelope.sutainGain));   
+        envelopeGainMultipliers[ADSRState::Decay].add (jmap<double>(smpl, 0, envelope.decayDuration - 1, 1, envelope.sustainGain));   
     }
 
-    envelopeGainMultipliers[ADSRState::Sustain].add (envelope.sutainGain);
+    envelopeGainMultipliers[ADSRState::Sustain].add (envelope.sustainGain);
 
     for (uint32 smpl = 0; smpl < envelope.releaseDuration; smpl++)
     {
-        envelopeGainMultipliers[ADSRState::Release].add (jmap<double>(smpl, 0, envelope.releaseDuration - 1, envelope.sutainGain, 0));   
+        envelopeGainMultipliers[ADSRState::Release].add (jmap<double>(smpl, 0, envelope.releaseDuration - 1, envelope.sustainGain, 0));   
     }
 }
 

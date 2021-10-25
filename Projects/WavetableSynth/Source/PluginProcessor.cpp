@@ -197,7 +197,7 @@ ADSRSettings getADSRSettings (const AudioProcessorValueTreeState& apvts, const d
 
     settings.attackDuration     = apvts.getRawParameterValue("Attack") ->load() * samplesPerMilliSecond;
     settings.decayDuration      = apvts.getRawParameterValue("Decay")  ->load() * samplesPerMilliSecond;
-    settings.sutainGain         = apvts.getRawParameterValue("Sustain")->load();
+    settings.sustainGain        = apvts.getRawParameterValue("Sustain")->load();
     settings.releaseDuration    = apvts.getRawParameterValue("Release")->load() * samplesPerMilliSecond;
 
     return settings;

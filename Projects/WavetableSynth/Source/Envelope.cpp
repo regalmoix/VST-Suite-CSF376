@@ -81,7 +81,7 @@ void ADSREnvelopeEditor::timerCallback()
         float df    = float(settings.decayDuration)   / float(totalLengthInSamples); 
         float rf    = float(settings.releaseDuration) / float(totalLengthInSamples); 
 
-        float s     = settings.sutainGain;
+        float s     = settings.sustainGain;
 
         envelopeDescriptor[ADSRState::Attack].finalX    = af;
 
