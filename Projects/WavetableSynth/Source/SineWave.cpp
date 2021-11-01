@@ -34,6 +34,9 @@ SineWaveVoice::SineWaveVoice(const WavetableSynthAudioProcessor& p) : processor(
     updateADSRSettings();
     startTimerHz(60);
 
+    // +1 because combobox 0 means no selection so practically indexing begins at 1
+    voices = processor.apvts.getRawParameterValue("Voices")->load() + 1;
+
     initOscillators(processor.getWaveFunction());
 }
 
@@ -76,8 +79,9 @@ AudioSampleBuffer SineWaveVoice::makeWaveTable(std::function<double(double)> wav
 void SineWaveVoice::initOscillators(std::function<double(double)> waveFunction) 
 {
     AudioSampleBuffer wavetable = makeWaveTable(waveFunction);
-    /** @brief To give user slider control of the harmonics to play, assign 1 wavetable to 1 oscillator */
-    oscillators.add(new WavetableOscillator(wavetable));
+    /** @todo To give user slider control of the harmonics to play, assign 1 wavetable to 1 oscillator */
+    for (int i = 0; i < voices; i++)
+        oscillators.add(new WavetableOscillator(wavetable));
 }
 
 void SineWaveVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound*, int currentPitchWheelPosition)
@@ -86,15 +90,9 @@ void SineWaveVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSou
     adsrState       = ADSRState::Attack;
     envelopeIndex   = 0;
     
-    float sampleRate    = getSampleRate();
-    float oscFrequency  = MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+    centerFrequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber);
 
-    for (WavetableOscillator* oscillator : oscillators) 
-    {
-        oscillator->init();
-        oscillator->setCurrentSampleRate (sampleRate);
-        oscillator->setFrequency (oscFrequency);
-    }
+    initialiseVoices(centerFrequency);    
 }
 
 void SineWaveVoice::stopNote(float velocity, bool allowTailOff)
@@ -109,6 +107,7 @@ void SineWaveVoice::stopNote(float velocity, bool allowTailOff)
     }
 
     envelopeIndex = 0;
+    centerFrequency = 0;
 }
 
 void SineWaveVoice::renderNextBlock(AudioSampleBuffer& outputBuffer, int startSample, int numSamples) 
@@ -119,6 +118,7 @@ void SineWaveVoice::renderNextBlock(AudioSampleBuffer& outputBuffer, int startSa
         if (adsrState == ADSRState::Stopped)
             return;
 
+        /** @bug Some logic somwhere is causing voice's gain to be proportional to detune. Low voices are thus lower amplitude*/
         for (WavetableOscillator* oscillator : oscillators) 
         {
             double currentSample    = oscillator->getNextSample() * level * getEnvelopeGainMultiplier();
@@ -166,14 +166,44 @@ void SineWaveVoice::parameterGestureChanged (int parameterIndex, bool gestureIsS
 void SineWaveVoice::parameterValueChanged(int parameterIndex, float newValue)
 {
     /** @note : parameterIndex = 0 for wavetable choice menu */
-    if (parameterIndex != 0)
-        adsrParamsChanged.set(true);
-    else
+    if (parameterIndex == 0)
         wavetableChanged.set(true);
+    /** @note : parameterIndex = 5 for detune knob */
+    else if (parameterIndex == 5)
+    {
+        LOG("Osc re tuned for new detune");
+        detuneChanged.set(true);
+    }
+    else
+        adsrParamsChanged.set(true);
 }
 
 void SineWaveVoice::timerCallback()
 {
+    voices = processor.apvts.getRawParameterValue("Voices")->load() + 1;
+    
+    /** @brief New voices added or existing ones removed */
+    if (voices != oscillators.size())
+    {
+        if (voices > oscillators.size())
+        {
+            AudioSampleBuffer wavetable = makeWaveTable(processor.getWaveFunction());
+
+            for (int i = 0; i < voices - oscillators.size(); ++i)
+                oscillators.add(new WavetableOscillator(wavetable));
+            
+            initialiseVoices(centerFrequency);
+        }
+
+        else
+            oscillators.removeLast(oscillators.size() - voices);
+        
+        LOG("Voices are now : " << oscillators.size());
+    }
+
+    if (detuneChanged.compareAndSetBool(false, true))
+        initialiseVoices(centerFrequency);
+    
     if (adsrParamsChanged.compareAndSetBool(false, true))
         updateADSRSettings();
 
@@ -183,6 +213,29 @@ void SineWaveVoice::timerCallback()
 
         for (WavetableOscillator* osc : oscillators)
             osc->changeWavetable(wavetable);
+    }
+}
+
+void SineWaveVoice::initialiseVoices(double frequency)
+{
+    float sampleRate    = getSampleRate();
+
+    /** @brief Add new oscillators, with detuning and @todo stereo separatation */
+    /** @todo  Change the relationship between detuneRatio and detuneKnob value */
+    double detuneRatio = exp (processor.apvts.getRawParameterValue("Detune")->load());
+
+    /** @todo Currently assuming an odd number of voices. extend later for even number of voices 
+     *  @brief The following line ensures that the leftmost voice is most detuned
+     *         ex if 7 voices, leftmost freq = center / detuneRatio^3 and rightmost freq = center * detuneRatio^3 
+    **/
+    frequency   /= std::pow(detuneRatio, float(voices - 1) / 2.0); 
+
+    for (WavetableOscillator* oscillator : oscillators) 
+    {
+        oscillator->init();
+        oscillator->setCurrentSampleRate (sampleRate);
+        oscillator->setFrequency (frequency);
+        frequency *= detuneRatio;
     }
 }
 

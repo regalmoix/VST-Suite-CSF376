@@ -25,7 +25,11 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
         releaseAttachment   (p.apvts, "Release", releaseKnob),
         wavetableAttachment (p.apvts, "WaveTable Choice", wavetableChoice),
         waveGraph           (p),
-        adsrEnvelopeDraggable(p, attackKnob, decayKnob, sustainKnob, releaseKnob)
+        adsrEnvelopeDraggable(p, attackKnob, decayKnob, sustainKnob, releaseKnob),
+        detuneKnob          (*p.apvts.getParameter("Detune"), "", "Detune"),
+        voicesChoice        ("Voices"),
+        detuneAttachment    (p.apvts, "Detune", detuneKnob),
+        voicesAttachment    (p.apvts, "Voices", voicesChoice)
 {
     /** @TODO: If possible, send this code to Slider constructor, adding labels by getting max and min value */
     attackKnob.labels.add({ "0ms", 0.0f });
@@ -76,7 +80,10 @@ WavetableSynthAudioProcessorEditor::WavetableSynthAudioProcessorEditor (Wavetabl
     adsrEnvelopeDraggable.setDotRadius(6);
     adsrEnvelopeDraggable.setLineThickness(2);
 
-
+    StringArray voicesChoices = {"1", "2", "3", "4", "5", "6", "7"};
+    voicesChoice.addItemList(voicesChoices, 1);
+    voicesChoice.setSelectedItemIndex(p.apvts.getRawParameterValue("Voices")->load());
+    
     for (Component* component : getComponents())
     {
         addAndMakeVisible(component);
@@ -133,6 +140,7 @@ void WavetableSynthAudioProcessorEditor::resized()
         if (auto* knob = dynamic_cast<RotarySlider*>(component))
             adsrMenu.items.add(FlexItem(*knob)  .withMinWidth(diameter).withMinHeight(diameter));
     }
+    adsrMenu.items.add(FlexItem(voicesChoice)  .withMinWidth(diameter).withMinHeight(diameter));
 
     topMenu.items.add(FlexItem(waveGraph)       .withMinWidth(bounds.getWidth() * 0.30).withMinHeight(bounds.getHeight() * 0.10));
     topMenu.items.add(FlexItem(wavetableChoice) .withMinWidth(bounds.getWidth() * 0.35).withMinHeight(bounds.getHeight() * 0.10));
@@ -159,6 +167,8 @@ std::vector<Component*> WavetableSynthAudioProcessorEditor::getComponents()
         &wavetableChoice,
         &wavetableLabel,
         &waveGraph,
-        &adsrEnvelopeDraggable
+        &adsrEnvelopeDraggable,
+        &detuneKnob,
+        &voicesChoice
     };
 }

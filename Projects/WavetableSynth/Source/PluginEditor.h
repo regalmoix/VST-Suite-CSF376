@@ -155,6 +155,13 @@ private:
 
     GraphComponent                  waveGraph;
     ADSREnvelopeEditor              adsrEnvelopeDraggable;
+
+    RotarySlider                    detuneKnob;
+    ComboBox                        voicesChoice;
+
+    APVTS::SliderAttachment         detuneAttachment;
+    APVTS::ComboBoxAttachment       voicesAttachment;
+    
     std::vector<Component*>         getComponents();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthAudioProcessorEditor)

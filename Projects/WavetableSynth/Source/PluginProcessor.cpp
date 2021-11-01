@@ -178,6 +178,27 @@ AudioProcessorValueTreeState::ParameterLayout WavetableSynthAudioProcessor::crea
         )
     );
 
+    // Adding Detune Slider with appropriate range and defaults
+    layout.add(std::make_unique<AudioParameterFloat>
+        (
+            "Detune",
+            "Detune",
+            NormalisableRange(0.0f, 1.0f, 0.01f, skewFactor),
+            0.0f
+        )
+    );
+
+    StringArray voicesChoice = {"1", "2", "3", "4", "5", "6", "7"};
+    // Adding Voice choice menu to select number of voices
+    layout.add(std::make_unique<AudioParameterChoice>
+        (
+            "Voices",
+            "Voices",
+            voicesChoice,
+            0
+        )
+    );
+
     return layout;
 }
 

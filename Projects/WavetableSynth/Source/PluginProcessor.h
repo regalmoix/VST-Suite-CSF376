@@ -13,6 +13,13 @@
 #define WAVETABLE_CNT 5
 #define OSC_CNT 3
 #define TABLESIZE 44100
+#define LOGGING
+
+#ifdef LOGGING
+    #define LOG(txt) DBG("[" << __FUNCTION__ << "] " << txt)
+#else
+    #define LOG(txt) 
+#endif
 
 enum ADSRState
 {
@@ -78,11 +85,14 @@ private:
     OwnedArray<WavetableOscillator>         oscillators;
     const WavetableSynthAudioProcessor&     processor;
 
+    int             voices              { 1 };
     double          level               { 0.0f };
+    double          centerFrequency     { 0.0f };
     ADSRState       adsrState           { ADSRState::Stopped };
     uint32          envelopeIndex       { 0 };                  // Sample Index used to query the envelope gain multiplier 
     Atomic<bool>    adsrParamsChanged   { false };
     Atomic<bool>    wavetableChanged    { false };
+    Atomic<bool>    detuneChanged       { false };
 
     Array <double>  envelopeGainMultipliers[4];
     
@@ -161,6 +171,8 @@ private:
      * @return waveTable 
      */
     AudioSampleBuffer makeWaveTable(std::function<double(double)> waveFunction) const;
+
+    void initialiseVoices(double frequency);
 };
 
 class WavetableSynthAudioProcessor  : public AudioProcessor
