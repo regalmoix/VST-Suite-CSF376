@@ -118,7 +118,11 @@ void SineWaveVoice::renderNextBlock(AudioSampleBuffer& outputBuffer, int startSa
         if (adsrState == ADSRState::Stopped)
             return;
 
-        /** @bug Some logic somwhere is causing voice's gain to be proportional to detune. Low voices are thus lower amplitude*/
+        /** Not a @bug: https://forums.acoustica.com/viewtopic.php?t=23475
+         * Previously thought that : Some logic somwhere is causing voice's gain to be proportional to detune. Low voices are thus lower amplitude*
+         * But was later realised that most spectrum analysers have a spectrum slope of 3 - 4.5 dBFS/oct to mimic the frequency response of ears
+         * Human tend to hear -6dBFS @ 200Hz to be quieter than -6dBFS @ 2000Hz
+        **/
         for (WavetableOscillator* oscillator : oscillators) 
         {
             double currentSample    = oscillator->getNextSample() * level * getEnvelopeGainMultiplier();

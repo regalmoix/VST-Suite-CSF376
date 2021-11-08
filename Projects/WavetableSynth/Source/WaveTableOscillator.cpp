@@ -9,6 +9,7 @@
 */
 
 #include "PluginProcessor.h"
+#include <stdexcept>
 
 WavetableOscillator::WavetableOscillator(AudioSampleBuffer wavetableToUse)
     :   wavetable (wavetableToUse),
@@ -39,6 +40,20 @@ void WavetableOscillator::setFrequency(float frequency)
     const float tableSizeOverSampleRate = (float) tableSize / currentSampleRate;
     tableDelta = frequency * tableSizeOverSampleRate;
 }
+
+/**
+ * @brief Used to set the initial phase of the wavetable. 
+ *        Passing a random norm float can be useful to randomise phase 
+ * @param normPhase 
+ */
+void WavetableOscillator::setPhase(float normPhase)
+{
+    if (normPhase > 1 || normPhase < 0)
+        throw std::invalid_argument("Invalid Phase");
+
+    currentIndex = normPhase * tableSize;
+}
+
 
 /**
  * @brief Gets the next sample from the table and increments the currentIndex.

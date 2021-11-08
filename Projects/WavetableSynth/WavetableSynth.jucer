@@ -66,7 +66,7 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../JUCE/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" enableGNUExtensions="1" extraCompilerFlags=" -Wno-unused-parameter ">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" enableGNUExtensions="1" extraCompilerFlags="-Wno-unused-parameter  -Wno-sign-conversion ">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" binaryPath="Builds/Plugin/" recommendedWarnings="GCC"
                        linuxArchitecture="-march=native"/>

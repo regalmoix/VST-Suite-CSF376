@@ -53,6 +53,7 @@ public:
     void    setCurrentSampleRate (float sampleRate);
     void    init ();
     void    setFrequency (float frequency);
+    void    setPhase     (float normPhase);
     float   getNextSample () noexcept;
     void    changeWavetable (const AudioSampleBuffer& newWavetableToUse);
     
