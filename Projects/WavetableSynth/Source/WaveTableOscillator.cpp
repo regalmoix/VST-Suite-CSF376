@@ -10,6 +10,7 @@
 
 #include "PluginProcessor.h"
 #include <stdexcept>
+#include <cstdlib>
 
 WavetableOscillator::WavetableOscillator(AudioSampleBuffer wavetableToUse)
     :   wavetable (wavetableToUse),

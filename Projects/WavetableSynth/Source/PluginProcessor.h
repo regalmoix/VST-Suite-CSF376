@@ -86,6 +86,8 @@ private:
     OwnedArray<WavetableOscillator>         oscillators;
     const WavetableSynthAudioProcessor&     processor;
 
+    /** @todo : Add Initial Phase and Random Phase Range (see Xfer Serum) */
+
     int             voices              { 1 };
     double          level               { 0.0f };
     double          centerFrequency     { 0.0f };

@@ -9,6 +9,9 @@ Author:  regalmoix
 */
 
 #include "PluginProcessor.h"
+#include <cstdlib>
+
+#define SQUARE(x)   ((x)*(x))
 
 bool SineWaveSound::appliesToNote(int midiNoteNumber)
 {
@@ -226,7 +229,7 @@ void SineWaveVoice::initialiseVoices(double frequency)
 
     /** @brief Add new oscillators, with detuning and @todo stereo separatation */
     /** @todo  Change the relationship between detuneRatio and detuneKnob value */
-    double detuneRatio = exp (processor.apvts.getRawParameterValue("Detune")->load());
+    double detuneRatio = SQUARE(processor.apvts.getRawParameterValue("Detune")->load());
 
     /** @todo Currently assuming an odd number of voices. extend later for even number of voices 
      *  @brief The following line ensures that the leftmost voice is most detuned
@@ -234,11 +237,14 @@ void SineWaveVoice::initialiseVoices(double frequency)
     **/
     frequency   /= std::pow(detuneRatio, float(voices - 1) / 2.0); 
 
+    srand (time(NULL));
+
     for (WavetableOscillator* oscillator : oscillators) 
     {
         oscillator->init();
         oscillator->setCurrentSampleRate (sampleRate);
         oscillator->setFrequency (frequency);
+        oscillator->setPhase(rand() / RAND_MAX);
         frequency *= detuneRatio;
     }
 }
